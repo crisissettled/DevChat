@@ -1,4 +1,4 @@
-using Chat.Utils;
+using Chat.signalR;
 
 var builder = WebApplication.CreateBuilder(args);
 
