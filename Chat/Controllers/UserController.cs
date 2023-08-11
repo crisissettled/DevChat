@@ -17,7 +17,7 @@ namespace Chat.Controllers {
         }
 
         [HttpPut]
-        public ActionResult<string> SearchFriend(string UserId) {
+        public ActionResult<string> SearchFriend(string UserInfo) {
 
             return Ok("Ok");
         }
