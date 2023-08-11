@@ -1,7 +1,8 @@
-import { Counter } from "./components/Counter";
 
 import { Home } from "./components/Home";
-import Chat from "./components/Chat";
+import { Counter } from "./components/Counter";
+import { Chat } from "./components/Chat";
+import { NotFound } from "./components/NotFound"
 
 const AppRoutes = [
     {
@@ -15,6 +16,10 @@ const AppRoutes = [
     {
         path: '/counter',
         element: <Counter />
+    },
+    {
+        path: '*',
+        element: <NotFound />
     }
 ];
 

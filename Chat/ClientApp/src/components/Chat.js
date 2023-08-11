@@ -1,7 +1,6 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { HubConnectionBuilder } from '@microsoft/signalr';
-
-function Chat() {
+export function Chat() {
 
     const [connection, setConnection] = useState(null);
     const [conStatus, setConStatus] = useState("");
@@ -95,5 +94,4 @@ function Chat() {
         </>
     );
 }
-
-export default Chat;
+ 

@@ -20,6 +20,10 @@ app.UseRouting();
 
 app.MapHub<ChatHub>("/hubs/chat");
 
-app.MapControllers();
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller}/{action=Index}/{id?}");
+
+app.MapFallbackToFile("index.html");
 
 app.Run();
