@@ -5,7 +5,8 @@ const target = env.ASPNETCORE_HTTPS_PORT ? `https://localhost:${env.ASPNETCORE_H
     env.ASPNETCORE_URLS ? env.ASPNETCORE_URLS.split(';')[0] : 'http://localhost:25083';
 
 const context = [
-    "/api/user/ping",
+    "/api",
+    "/swagger"
 ];
 
 const onError = (err, req, resp, target) => {
@@ -13,7 +14,7 @@ const onError = (err, req, resp, target) => {
 }
 
 module.exports = function (app) {
-    const appProxy = createProxyMiddleware( {
+    const appProxy = createProxyMiddleware(context, {
         proxyTimeout: 10000,
         target: target,
         // Handle errors to prevent the proxy middleware from crashing when
@@ -27,7 +28,7 @@ module.exports = function (app) {
         }
     });
 
-    app.use("/api",appProxy);
+    app.use( appProxy);
 
     app.use(createProxyMiddleware(["/hubs/chat"], {
         proxyTimeout: 10000,

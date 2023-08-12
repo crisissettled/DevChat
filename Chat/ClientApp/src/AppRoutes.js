@@ -1,8 +1,6 @@
-
-import { Home } from "./components/Home";
-import { Counter } from "./components/Counter";
-import { Chat } from "./components/Chat";
-import { NotFound } from "./components/NotFound"
+import { Chat } from "./pages/Chat";
+import { Login } from "./pages/Login";
+import { NotFound } from "./pages/NotFound"
 
 const AppRoutes = [
     {
@@ -10,12 +8,8 @@ const AppRoutes = [
         element: <Chat />
     },
     {
-        path: '/home',
-        element: <Home />
-    },
-    {
-        path: '/counter',
-        element: <Counter />
+        path: '/login',
+        element: <Login />
     },
     {
         path: '*',

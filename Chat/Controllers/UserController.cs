@@ -1,13 +1,35 @@
-﻿using Chat.Utils;
+﻿using Chat.Model;
+using Chat.Utils;
+using Chat.Utils.MongoDb;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Chat.Controllers {
    
     public class UserController : ApiControllerBase {
 
+        private readonly IMongoDbUserService _mongoDbUserService;
+
+        public UserController(IMongoDbUserService mongoDbUserService) {
+            _mongoDbUserService = mongoDbUserService;
+        } 
+
         [HttpPut]
-        public IActionResult SignUp(string UserId,string Password) {
+        public async Task<IActionResult> SignUp(SignUpRequest signUpRequest) {
+            var objUser = new User(signUpRequest.UserId, signUpRequest.Password, signUpRequest.Name) {
+                Email = signUpRequest.Email
+            };
+
+            await _mongoDbUserService.CreateAsync(objUser);
+
             return Ok();
+        }
+
+        [HttpPut]
+        public ActionResult SignIn(SignInRequest signInReq) {
+            if (signInReq.UserId != "admin" || signInReq.Password != "abc") return Unauthorized();
+
+            var token = Jwt.GenerateAccessToken(signInReq.UserId);
+            return Ok(token);
         }
 
         [HttpPut]

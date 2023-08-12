@@ -11,21 +11,21 @@ namespace Chat.signalR {
         }
 
         public override Task OnConnectedAsync() {
-            var UserName = this.Context.User?.Identity?.Name;
-            if(UserName != null) { 
-                _memoryCache.Set<string>(this.Context.ConnectionId, UserName);
+            var UserId = this.Context.UserIdentifier;
+            if(UserId != null) { 
+                _memoryCache.Set<string>(this.Context.ConnectionId, UserId);
             }
                  
             return base.OnConnectedAsync();
         }
         public Task SendMessage(string toUserId, string message) { 
-            if ( _memoryCache.TryGetValue(this.Context.ConnectionId, out string? fromUser) == false) {
+            if ( _memoryCache.TryGetValue(this.Context.ConnectionId, out string? fromUserId) == false) {
                 Console.WriteLine("From user is not existing in cache");                 
             }
 
-            if (fromUser == null) return Task.CompletedTask;
+            if (fromUserId == null) return Task.CompletedTask;
 
-            return this.Clients.Users(toUserId).ReceiveMessage(fromUser, message);
+            return this.Clients.Users(toUserId).ReceiveMessage(fromUserId, message);
         }
 
         public override Task OnDisconnectedAsync(Exception? exception) {
