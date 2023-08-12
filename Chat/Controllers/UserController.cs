@@ -22,5 +22,10 @@ namespace Chat.Controllers {
             return Ok("Ok");
         }
 
+        [HttpGet]
+        public ActionResult<string> Ping() {
+            return Ok($"Pong - {DateTime.Now.ToLocalTime()}" );
+        }
+
     }
 }

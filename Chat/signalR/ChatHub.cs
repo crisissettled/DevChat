@@ -1,10 +1,9 @@
-﻿using Microsoft.AspNetCore.SignalR;
+﻿using Chat.Utils;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace Chat.signalR {
-    public class ChatHub : Hub<IChatClient> {
-
-        private const string cst_UnknowUser = "Unknown user";
+    public class ChatHub : Hub<IChatClient> { 
 
         private readonly IMemoryCache _memoryCache;
         public ChatHub(IMemoryCache memoryCache) {
@@ -12,20 +11,25 @@ namespace Chat.signalR {
         }
 
         public override Task OnConnectedAsync() {
+            var UserName = this.Context.User?.Identity?.Name;
+            if(UserName != null) { 
+                _memoryCache.Set<string>(this.Context.ConnectionId, UserName);
+            }
+                 
             return base.OnConnectedAsync();
         }
-        public Task SendMessage(string toUserId, string message) {
-            var fromUser = cst_UnknowUser;
-
-            if (_memoryCache.TryGetValue(this.Context.ConnectionId, out fromUser) == false) {
-                fromUser = this.Context.User?.Identity?.Name ?? cst_UnknowUser;
-                _memoryCache.Set(this.Context.ConnectionId, fromUser);
+        public Task SendMessage(string toUserId, string message) { 
+            if ( _memoryCache.TryGetValue(this.Context.ConnectionId, out string? fromUser) == false) {
+                Console.WriteLine("From user is not existing in cache");                 
             }
 
-            return this.Clients.Users(toUserId).ReceiveMessage(fromUser ?? cst_UnknowUser, message);
+            if (fromUser == null) return Task.CompletedTask;
+
+            return this.Clients.Users(toUserId).ReceiveMessage(fromUser, message);
         }
 
         public override Task OnDisconnectedAsync(Exception? exception) {
+            _memoryCache.Remove(this.Context.ConnectionId);
             return base.OnDisconnectedAsync(exception);
         }
     }

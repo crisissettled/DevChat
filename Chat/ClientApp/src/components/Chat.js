@@ -1,5 +1,5 @@
 ﻿import React, { useState, useEffect } from 'react';
-import { HubConnectionBuilder } from '@microsoft/signalr';
+import { HubConnectionBuilder, HttpTransportType, HubConnectionState, LogLevel } from '@microsoft/signalr';
 export function Chat() {
 
     const [connection, setConnection] = useState(null);
@@ -8,17 +8,21 @@ export function Chat() {
     const [messageOut, setMessageOut] = useState(null);
     const [msgArrIn, setMsgArrIn] = useState([]);
 
- 
-    const hubChatEndPoint = '/hubs/chat' 
+
+    const hubChatEndPoint = '/hubs/chat'
 
     useEffect(() => {
         const con = new HubConnectionBuilder()
-            .withUrl(`${process.env.REACT_APP_WebApiBaseURL??""}${hubChatEndPoint}`)
+            .withUrl(`${hubChatEndPoint}`,{
+                    skipNegotiation: true,
+                transport: HttpTransportType.WebSockets
+            })            
+            .configureLogging(LogLevel.Information)
             .withAutomaticReconnect()
             .build();
 
         setConnection(con);
-        setConStatus("Inital signalR connection...");
+        setConStatus("init signalr connection...");
 
     }, []);
 
@@ -26,7 +30,7 @@ export function Chat() {
         if (connection) {
             connection.start()
                 .then(_ => {
-                    console.log("signalR hub connected")
+                    console.log("signalr hub connected")
                     setConStatus('Connected!');
                     connection.on('ReceiveMessage', (user, message) => {
                         console.log(user, message, "------------->ReceiveMessage");
@@ -35,7 +39,7 @@ export function Chat() {
                 })
                 .catch(e => {
                     setConStatus(`Connection failed`)
-                    console.log("signalR error---------->", e)
+                    console.log("signalr error---------->", e)
                 });
         }
     }, [connection]);
@@ -52,7 +56,7 @@ export function Chat() {
             console.log(res, "signalR SendMessage response");
             setMessageOut(null);
         }).catch(function (err) {
-            console.error(err.toString(), "signalR error");
+            console.error(err.toString(), "signalr error");
         });
     }
 
@@ -94,4 +98,3 @@ export function Chat() {
         </>
     );
 }
- 

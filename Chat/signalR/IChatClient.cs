@@ -1,5 +1,5 @@
 ﻿namespace Chat.signalR {
     public interface IChatClient {
-        Task ReceiveMessage(string fromUser, string message);
+        Task ReceiveMessage(string fromUserId, string message);
     }
 }
