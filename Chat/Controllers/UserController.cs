@@ -1,25 +1,38 @@
 ﻿using Chat.Model;
 using Chat.Utils;
 using Chat.Utils.MongoDb;
+using FluentValidation;
+using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Chat.Controllers {
-   
+
     public class UserController : ApiControllerBase {
 
         private readonly IMongoDbUserService _mongoDbUserService;
 
         public UserController(IMongoDbUserService mongoDbUserService) {
             _mongoDbUserService = mongoDbUserService;
-        } 
+        }
 
         [HttpPut]
-        public async Task<IActionResult> SignUp(SignUpRequest signUpRequest) {
+        public async Task<IActionResult> SignUp([FromServices] IValidator<SignUpRequest> validator, SignUpRequest signUpRequest) {
+
+            ValidationResult result = await validator.ValidateAsync(signUpRequest);
+
+            if (!result.IsValid) {
+                return BadRequest(result.Errors);
+            }
+
             var objUser = new User(signUpRequest.UserId, signUpRequest.Password, signUpRequest.Name) {
                 Email = signUpRequest.Email
             };
 
-            await _mongoDbUserService.CreateAsync(objUser);
+            try {
+                await _mongoDbUserService.CreateAsync(objUser);
+            } catch (Exception ex) {
+                return BadRequest(ex.Message);
+            }
 
             return Ok();
         }
@@ -46,7 +59,7 @@ namespace Chat.Controllers {
 
         [HttpGet]
         public ActionResult<string> Ping() {
-            return Ok($"Pong - {DateTime.Now.ToLocalTime()}" );
+            return Ok($"Pong - {DateTime.Now.ToLocalTime()}");
         }
 
     }

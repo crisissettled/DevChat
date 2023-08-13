@@ -1,6 +1,8 @@
+using Chat.Model;
 using Chat.signalR;
 using Chat.Utils;
 using Chat.Utils.MongoDb;
+using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
@@ -48,8 +50,8 @@ builder.Services.AddAuthentication(options => {
                 }
             };
         });
-
 builder.Services.AddSingleton<IMongoDbUserService,MongoDbUserService>();
+builder.Services.AddValidatorsFromAssemblyContaining<SignUpRequestValidator>();
 
 var app = builder.Build();
 

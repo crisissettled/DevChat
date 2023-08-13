@@ -10,7 +10,7 @@ namespace Chat.Model {
         public string Password { get; set; }      
         public string Name { get; set; }
         public string? Email { get; set; }
-        public DateTime? CreatedAt { get; set; }
+        public DateTime? CreatedAt { get; set; } = DateTime.Now;
 
         public User(string UserId,string Password,string Name) {
             this.UserId = UserId;
