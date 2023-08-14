@@ -9,9 +9,9 @@ namespace Chat.Controllers {
 
     public class UserController : ApiControllerBase {
 
-        private readonly IMongoDbUserService _mongoDbUserService;
+        private readonly IMongoDbUserService _mongoDbUserService;  
 
-        public UserController(IMongoDbUserService mongoDbUserService) {
+        public UserController(IHostEnvironment env, IMongoDbUserService mongoDbUserService) : base(env) {
             _mongoDbUserService = mongoDbUserService;
         }
 
@@ -21,7 +21,7 @@ namespace Chat.Controllers {
             ValidationResult result = await validator.ValidateAsync(signUpRequest);
 
             if (!result.IsValid) {
-                return BadRequest(result.Errors);
+                return ValidationResult(result);
             }
 
             var objUser = new User(signUpRequest.UserId, signUpRequest.Password, signUpRequest.Name) {
@@ -31,7 +31,7 @@ namespace Chat.Controllers {
             try {
                 await _mongoDbUserService.CreateAsync(objUser);
             } catch (Exception ex) {
-                return BadRequest(ex.Message);
+                return ExceptionResult(ex);
             }
 
             return Ok();
