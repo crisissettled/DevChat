@@ -6,7 +6,7 @@
         Error = 5000
     }
 
-    public static class ColorsExtensions {
+    public static class ResultCodeExtensions {
         public static string GetMessage(this ResultCode code) {
             switch (code) {
                 case ResultCode.UserExisted:
