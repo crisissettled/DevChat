@@ -2,6 +2,8 @@
 
 namespace Chat.Utils.MongoDb {
     public interface IMongoDbUserService {
-        Task CreateAsync(User user);
+
+        Task<bool> GetUserAsync(string UserId);
+        Task CreateUserAsync(User user);
     }
 }

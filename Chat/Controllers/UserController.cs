@@ -1,4 +1,5 @@
 ﻿using Chat.Model;
+using Chat.Model.ResponseResult;
 using Chat.Utils;
 using Chat.Utils.MongoDb;
 using FluentValidation;
@@ -24,12 +25,16 @@ namespace Chat.Controllers {
                 return ValidationResult(result);
             }
 
+            if(await _mongoDbUserService.GetUserAsync(signUpRequest.UserId) == true) {
+                return BadRequestResult(new InternalError(ResultCode.UserExisted));
+            }
+
             var objUser = new User(signUpRequest.UserId, signUpRequest.Password, signUpRequest.Name) {
                 Email = signUpRequest.Email
             };
 
             try {
-                await _mongoDbUserService.CreateAsync(objUser);
+                await _mongoDbUserService.CreateUserAsync(objUser);
             } catch (Exception ex) {
                 return ExceptionResult(ex);
             }

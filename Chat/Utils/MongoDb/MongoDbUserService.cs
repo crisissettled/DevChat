@@ -15,7 +15,15 @@ namespace Chat.Utils.MongoDb {
             _userCollection = database.GetCollection<User>(MongoDbConfig.UserCollectionName);            
         }
 
-        public async Task CreateAsync(User user) {
+        public async Task<bool> GetUserAsync(string UserId) {
+            
+            var filter = Builders<User>.Filter.Eq(x => x.UserId,UserId);
+            var user = await _userCollection.Find(filter).FirstOrDefaultAsync();
+
+            return user != null;
+        }
+
+        public async Task CreateUserAsync(User user) {
             await CreateUniqueIndexOnUserId();
             await _userCollection.InsertOneAsync(user);
         }

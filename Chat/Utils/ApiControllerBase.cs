@@ -1,5 +1,6 @@
-﻿using FluentValidation.Results;
-using Microsoft.AspNetCore.Http.HttpResults;
+﻿using Chat.Model.ResponseResult;
+using FluentValidation.Results;
+ 
 using Microsoft.AspNetCore.Mvc;
 
 namespace Chat.Utils {
@@ -11,6 +12,14 @@ namespace Chat.Utils {
             this.env = env;
         }
 
+        protected BadRequestObjectResult BadRequestResult(InternalError error) {
+            if (env.IsDevelopment()) {
+                return BadRequest(new ResponseResult { code = error.code, message = error.message });
+            }
+
+            return BadRequest(error.code);
+        }
+
         protected BadRequestObjectResult ValidationResult(ValidationResult result) {
             if (env.IsDevelopment()) {
                 return BadRequest(result);
@@ -18,6 +27,7 @@ namespace Chat.Utils {
 
             return BadRequest(result.Errors);
         }
+
 
         protected ObjectResult ExceptionResult(Exception ex, string? message = null) {
             if (env.IsDevelopment()) {
