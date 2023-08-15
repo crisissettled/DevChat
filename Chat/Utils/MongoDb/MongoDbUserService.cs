@@ -12,13 +12,15 @@ namespace Chat.Utils.MongoDb {
         public MongoDbUserService() {
             MongoClient client = new MongoClient(MongoDbConfig.ConnectionString);
             IMongoDatabase database = client.GetDatabase(MongoDbConfig.DatabaseName);
-            _userCollection = database.GetCollection<User>(MongoDbConfig.UserCollectionName);            
+            _userCollection = database.GetCollection<User>(MongoDbConfig.UserCollectionName);
         }
 
         public async Task<User> GetUserAsync(string UserId) {
-            
-            var filter = Builders<User>.Filter.Eq(x => x.UserId,UserId);
-            return await _userCollection.Find(filter).FirstOrDefaultAsync();           
+
+            var filter = Builders<User>.Filter.Eq(x => x.UserId, UserId);
+            return await _userCollection
+                .Find(filter, new FindOptions() { Collation = new Collation("en", strength: CollationStrength.Primary) }) // Case-Insensitive query
+                .FirstOrDefaultAsync();
         }
 
         public async Task CreateUserAsync(User user) {
@@ -30,7 +32,7 @@ namespace Chat.Utils.MongoDb {
         private async Task CreateUniqueIndexOnUserId() {
             var indexModel = new CreateIndexModel<User>(
                 new IndexKeysDefinitionBuilder<User>().Ascending(x => x.UserId),
-                new CreateIndexOptions() { Unique = true }
+                new CreateIndexOptions() { Unique = true, Collation = new Collation("en", strength: CollationStrength.Primary) } // Case-Insensitive index
              );
 
             await _userCollection.Indexes.CreateOneAsync(indexModel);
