@@ -1,6 +1,7 @@
 ﻿using Chat.Model;
 using Chat.Model.ResponseResult;
 using Chat.Utils;
+using Chat.Utils.Crypto;
 using Chat.Utils.MongoDb;
 using FluentValidation;
 using FluentValidation.Results;
@@ -10,10 +11,12 @@ namespace Chat.Controllers {
 
     public class UserController : ApiControllerBase {
 
-        private readonly IMongoDbUserService _mongoDbUserService;  
+        private readonly IMongoDbUserService _mongoDbUserService;
+        private readonly ICrypto _crypto;
 
-        public UserController(IHostEnvironment env, IMongoDbUserService mongoDbUserService) : base(env) {
+        public UserController(IHostEnvironment env, IMongoDbUserService mongoDbUserService, ICrypto crypto) : base(env) {
             _mongoDbUserService = mongoDbUserService;
+            _crypto = crypto;
         }
 
         [HttpPut]
@@ -29,7 +32,7 @@ namespace Chat.Controllers {
                 return BadRequestResult(new InternalError(ResultCode.UserExisted));
             }
 
-            var objUser = new User(signUpRequest.UserId, signUpRequest.Password, signUpRequest.Name) {
+            var objUser = new User(signUpRequest.UserId, _crypto.SHA256Encrypt(signUpRequest.Password), signUpRequest.Name) {
                 Email = signUpRequest.Email
             };
 

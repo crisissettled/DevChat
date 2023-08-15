@@ -8,7 +8,7 @@ namespace Chat.Model {
     public class SignUpRequestValidator : AbstractValidator<SignUpRequest> {
         public SignUpRequestValidator() {
             RuleFor(x => x.UserId).NotNull().Length(6,15);
-            RuleFor(x => x.Password).NotNull();
+            RuleFor(x => x.Password).NotNull().Length(6,20);
             RuleFor(x => x.Name).NotNull();
             RuleFor(x => x.Email).EmailAddress();        
         }

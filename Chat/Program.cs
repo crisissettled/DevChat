@@ -1,6 +1,7 @@
 using Chat.Model;
 using Chat.signalR;
 using Chat.Utils;
+using Chat.Utils.Crypto;
 using Chat.Utils.MongoDb;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -52,6 +53,7 @@ builder.Services.AddAuthentication(options => {
         });
 builder.Services.AddSingleton<IMongoDbUserService,MongoDbUserService>();
 builder.Services.AddValidatorsFromAssemblyContaining<SignUpRequestValidator>();
+builder.Services.AddSingleton<ICrypto, Crypto>();
 
 var app = builder.Build();
 
