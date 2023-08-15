@@ -7,6 +7,7 @@ using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
 
+
 namespace Chat.Controllers {
 
     public class UserController : ApiControllerBase {
@@ -22,13 +23,13 @@ namespace Chat.Controllers {
         [HttpPut]
         public async Task<IActionResult> SignUp([FromServices] IValidator<SignUpRequest> validator, SignUpRequest signUpRequest) {
 
-            ValidationResult result = await validator.ValidateAsync(signUpRequest);
+            var result = await validator.ValidateAsync(signUpRequest);
 
             if (!result.IsValid) {
                 return ValidationResult(result);
             }
 
-            if(await _mongoDbUserService.GetUserAsync(signUpRequest.UserId) == true) {
+            if(await _mongoDbUserService.GetUserAsync(signUpRequest.UserId) != null) {
                 return BadRequestResult(new InternalError(ResultCode.UserExisted));
             }
 
@@ -46,10 +47,18 @@ namespace Chat.Controllers {
         }
 
         [HttpPut]
-        public ActionResult SignIn(SignInRequest signInReq) {
-            if (signInReq.UserId != "admin" || signInReq.Password != "abc") return Unauthorized();
+        public async Task<ActionResult> SignIn([FromServices] IValidator<SignInRequest> validator, SignInRequest signInRequest) {
 
-            var token = Jwt.GenerateAccessToken(signInReq.UserId);
+            var result = await validator.ValidateAsync(signInRequest);
+
+            if (!result.IsValid) {
+                return ValidationResult(result);
+            }
+
+            var user = await _mongoDbUserService.GetUserAsync(signInRequest.UserId);
+            if(user == null || user.Password != _crypto.SHA256Encrypt(signInRequest.Password)) return Unauthorized();
+
+            var token = Jwt.GenerateAccessToken(signInRequest.UserId);
             return Ok(token);
         }
 
