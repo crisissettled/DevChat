@@ -10,7 +10,7 @@ namespace Chat.Model {
             RuleFor(x => x.UserId).NotNull().Length(3,15);
             RuleFor(x => x.Password).NotNull().Length(3,20);
             RuleFor(x => x.Name).NotNull();
-            RuleFor(x => x.Email).EmailAddress();        
+            RuleFor(x => x.Email).EmailAddress().When(x => !string.IsNullOrEmpty(x.Email));
         }
     }
 }
