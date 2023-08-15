@@ -1,5 +1,6 @@
 import { Chat } from "./pages/Chat";
-import { Login } from "./pages/Login";
+import { SignIn } from "./pages/SignIn";
+import { SignUp } from "./pages/SignUp";
 import { NotFound } from "./pages/NotFound"
 
 const AppRoutes = [
@@ -8,8 +9,12 @@ const AppRoutes = [
         element: <Chat />
     },
     {
-        path: '/login',
-        element: <Login />
+        path: '/signin',
+        element: <SignIn />
+    },
+    {
+        path: '/signup',
+        element: <SignUp />
     },
     {
         path: '*',

@@ -1,4 +1,4 @@
-﻿export function Login() {
+﻿export function SignIn() {
 
     return (
         <>
@@ -8,7 +8,7 @@
             <div>
                 <label value="Password"> <input type="password" /></label>
             </div>
-            <button>Login</button>
+            <button>Signin</button>
         </>
     )
 }
