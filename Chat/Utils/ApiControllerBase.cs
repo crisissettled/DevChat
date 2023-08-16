@@ -1,6 +1,5 @@
-﻿using Chat.Model.ResponseResult;
+﻿using Chat.Model.Response;
 using FluentValidation.Results;
- 
 using Microsoft.AspNetCore.Mvc;
 
 namespace Chat.Utils {
@@ -14,7 +13,7 @@ namespace Chat.Utils {
 
         protected BadRequestObjectResult BadRequestResult(InternalError error) {
             if (env.IsDevelopment()) {
-                return BadRequest(new ResponseResult { code = error.code, message = error.message });
+                return BadRequest(new ResponseResult(error.code));
             }
 
             return BadRequest(error.code);
@@ -27,7 +26,6 @@ namespace Chat.Utils {
 
             return BadRequest(result.Errors);
         }
-
 
         protected ObjectResult ExceptionResult(Exception ex, string? message = null) {
             if (env.IsDevelopment()) {

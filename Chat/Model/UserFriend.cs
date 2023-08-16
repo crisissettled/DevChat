@@ -1,10 +1,11 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 
-namespace Chat.Model {
+namespace Chat.Model
+{
     public class UserFriend {
         public string UserId { get; set; }
         public string FriendUserId { get; set; }
-        public UserFriendStatus FriendStatus { get; set; } = UserFriendStatus.Requested;
+        public FriendRequestStatus FriendStatus { get; set; } = FriendRequestStatus.Requested;
         public DateTime RequestedAt { get; set; } = DateTime.Now;
         public DateTime AcceptOrDeniedAt { get; set; }
         public FriendRequestMessage? MessageIn { get; set; }
@@ -17,16 +18,9 @@ namespace Chat.Model {
         }
     }
 
-    public enum UserFriendStatus {
-        Requested,
-        Pending, //send message back and forth to confirm friend
-        Accepted,
-        Denied
-    }
-
     public class FriendRequestMessage {
         public string? Message { get; set; }
-        public DateTime CreatedAt { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
     }
 
 }

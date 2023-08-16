@@ -1,10 +1,10 @@
 ﻿using Chat.Model;
-using Chat.Model.ResponseResult;
+using Chat.Model.Request;
+using Chat.Model.Response;
 using Chat.Utils;
 using Chat.Utils.Crypto;
 using Chat.Utils.MongoDb;
 using FluentValidation;
-using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
 
 
@@ -21,7 +21,7 @@ namespace Chat.Controllers {
         }
 
         [HttpPut]
-        public async Task<IActionResult> SignUp([FromServices] IValidator<SignUpRequest> validator, SignUpRequest signUpRequest) {
+        public async Task<IActionResult> SignUp([FromServices] IValidator<SignupRequest> validator, SignupRequest signUpRequest) {
 
             var result = await validator.ValidateAsync(signUpRequest);
 
@@ -33,9 +33,7 @@ namespace Chat.Controllers {
                 return BadRequestResult(new InternalError(ResultCode.UserExisted));
             }
 
-            var objUser = new User(signUpRequest.UserId, _crypto.SHA256Encrypt(signUpRequest.Password), signUpRequest.Name) {
-                Email = signUpRequest.Email
-            };
+            var objUser = new User(signUpRequest.UserId, _crypto.SHA256Encrypt(signUpRequest.Password), signUpRequest.Name);
 
             try {
                 await _mongoDbUserService.CreateUserAsync(objUser);
@@ -69,9 +67,19 @@ namespace Chat.Controllers {
         }
 
         [HttpPut]
-        public ActionResult<string> SearchFriend(string UserInfo) {
+        public async Task<ActionResult<ResponseResult>> SearchFriend(SearchFriendRequest searchFriendRequest) {
 
-            return Ok("Ok");
+            var userList = await _mongoDbUserService.GetUserListByKeywordAsync(searchFriendRequest.SearchKeyword);
+
+            if(userList == null || userList.Count == 0) {
+                return new ResponseResult(ResultCode.NoDataFound);
+            }
+
+            var result = new ResponseResult(ResultCode.Success) {            
+                data = userList
+            };
+
+            return Ok(result);
         }
 
         [HttpGet]

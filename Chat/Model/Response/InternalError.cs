@@ -1,4 +1,4 @@
-﻿namespace Chat.Model.ResponseResult {
+﻿namespace Chat.Model.Response {
     public class InternalError {
         public InternalError(ResultCode code) {
             this.code = code;

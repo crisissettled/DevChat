@@ -1,4 +1,4 @@
-using Chat.Model;
+using Chat.Model.Request;
 using Chat.signalR;
 using Chat.Utils;
 using Chat.Utils.Crypto;

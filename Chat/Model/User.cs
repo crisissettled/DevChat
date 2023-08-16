@@ -15,6 +15,8 @@ namespace Chat.Model {
         public string? Address { get; set; }
         public string? Phone { get; set; }
         public string? Email { get; set; }
+
+        [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
         public DateTime? CreatedAt { get; set; } = DateTime.Now;
         public User(string UserId,string Password,string Name) {
             this.UserId = UserId;
@@ -23,9 +25,5 @@ namespace Chat.Model {
         }
     }
 
-    public enum Gender {
-        unknown,
-        male,
-        female 
-    }
+   
 }

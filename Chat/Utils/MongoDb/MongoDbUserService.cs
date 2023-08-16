@@ -1,8 +1,7 @@
 ﻿using Chat.Model;
 using Chat.Model.Configs;
-using Microsoft.Extensions.Options;
+using MongoDB.Bson;
 using MongoDB.Driver;
-using System.Runtime.Intrinsics.X86;
 
 namespace Chat.Utils.MongoDb {
     public class MongoDbUserService : IMongoDbUserService {
@@ -26,6 +25,15 @@ namespace Chat.Utils.MongoDb {
                 .FirstOrDefaultAsync();
         }
 
+        public async Task<List<User>> GetUserListByKeywordAsync(string Keyword) {
+            var filter = Builders<User>.Filter.Or(
+                Builders<User>.Filter.Regex(x => x.UserId, new BsonRegularExpression($".*{Keyword}.*", "i")),
+                Builders<User>.Filter.Regex(x => x.Name, new BsonRegularExpression($".*{Keyword}.*", "i"))
+             );
+
+            return await _userCollection.Find(filter).ToListAsync();
+        }
+
         public async Task CreateUserAsync(User user) {
             await _userCollection.InsertOneAsync(user);
         }
@@ -35,13 +43,13 @@ namespace Chat.Utils.MongoDb {
         private void CreateUniqueIndexOnUserId() {
             var indexModel = new CreateIndexModel<User>(
                 new IndexKeysDefinitionBuilder<User>().Ascending(x => x.UserId),
-                new CreateIndexOptions() { Unique = true, Name=Constants.IDX_USER_UserId, Background = true, Collation = new Collation("en", strength: CollationStrength.Primary) } // Case-Insensitive index
+                new CreateIndexOptions() { Unique = true, Name = Constants.IDX_USER_UserId, Background = true, Collation = new Collation("en", strength: CollationStrength.Primary) } // Case-Insensitive index
              );
 
             var indexes = _userCollection.Indexes.List().ToList().Select(x => x.GetElement("name").Value.ToString()).ToList();
-            if (indexes.Any(x => x!=null && x.Equals(Constants.IDX_USER_UserId))) {
+            if (indexes.Any(x => x != null && x.Equals(Constants.IDX_USER_UserId))) {
                 _userCollection.Indexes.CreateOne(indexModel);
-            }            
+            }
         }
         #endregion
     }
