@@ -46,7 +46,7 @@ namespace Chat.Controllers {
 
                 var user = await _mongoDbUserService.GetUserAsync(userFriend.FriendUserId);
                 if (user != null) {
-                    userFriendResponseList.Add(new UserFriendResponse(user.UserId, user.Name, user.Gender);
+                    userFriendResponseList.Add(new UserFriendResponse(user.UserId, user.Name, user.Gender));
                 }
             }
 
