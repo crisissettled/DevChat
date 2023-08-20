@@ -33,7 +33,7 @@ namespace Chat.Controllers
             }
 
             if(await _mongoDbUserService.GetUserAsync(signUpRequest.UserId) != null) {
-                return BadRequestResult(new InternalError(ResultCode.UserExisted));
+                return BadRequestResult(ResultCode.UserExisted);
             }
 
             var objUser = new User(signUpRequest.UserId, crypto.SHA256Encrypt(signUpRequest.Password), signUpRequest.Name);

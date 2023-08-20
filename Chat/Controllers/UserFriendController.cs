@@ -16,7 +16,7 @@ namespace Chat.Controllers {
         private readonly IMongoDbUserFriendService _mongoDbUserFriendService;
         private readonly IMongoDbUserService _mongoDbUserService;
 
-        public UserFriendController(IHostEnvironment env, 
+        public UserFriendController(IHostEnvironment env,
             IMongoDbUserFriendService mongoDbUserFriendService,
             IMongoDbUserService mongoDbUserService
             ) : base(env) {
@@ -25,36 +25,105 @@ namespace Chat.Controllers {
         }
 
         [HttpPut]
-        public async Task<ActionResult<ResponseResult>> GetUserFriend(
-            [FromServices] IValidator<UserFriendRequest> validator,
-            UserFriendRequest userFriendRequest) {
+        public async Task<ActionResult<ResponseResult>> GetUserFriends(
+            [FromServices] IValidator<GetUserFriendsRequest> validator,
+            GetUserFriendsRequest userFriendRequest) {
 
             var resultValidate = await validator.ValidateAsync(userFriendRequest);
             if (!resultValidate.IsValid) {
                 return ValidationResult(resultValidate);
             }
 
-            var userFriendList = await _mongoDbUserFriendService.GetUserFriendList(userFriendRequest.UserId);
-            if (userFriendList == null || userFriendList.Count == 0) {
-                return new ResponseResult(ResultCode.NoDataFound);
-            }
-
-
-            var userFriendResponseList = new List<UserFriendResponse>();
-            foreach (var userFriend in userFriendList) {
-                if (userFriend.Blocked != userFriendRequest.Blocked) continue; // check blocked status with user request
-
-                var user = await _mongoDbUserService.GetUserAsync(userFriend.FriendUserId);
-                if (user != null) {
-                    userFriendResponseList.Add(new UserFriendResponse(user.UserId, user.Name, user.Gender));
+            try {
+                var userFriendList = await _mongoDbUserFriendService.GetUserFriendList(userFriendRequest.UserId);
+                if (userFriendList == null || userFriendList.Count == 0) {
+                    return new ResponseResult(ResultCode.NoDataFound);
                 }
+
+                var userFriendResponseList = new List<UserFriendResponse>();
+                foreach (var userFriend in userFriendList) {
+                    if (userFriend.Blocked != userFriendRequest.Blocked) continue; // check blocked status with user request
+
+                    var user = await _mongoDbUserService.GetUserAsync(userFriend.FriendUserId);
+                    if (user != null) {
+                        userFriendResponseList.Add(new UserFriendResponse(user.UserId, user.Name, user.Gender));
+                    }
+                }
+
+                var result = new ResponseResult(ResultCode.Success) {
+                    data = userFriendResponseList
+                };
+
+                return Ok(result);
+
+            } catch (Exception ex) {
+                return ExceptionResult(ex);
+            }
+        }
+
+
+        [HttpPost]
+        public async Task<ActionResult<ResponseResult>> AddUserFriend(
+            [FromServices] IValidator<AddUserFriendRequest> validator,
+            AddUserFriendRequest addUserFriendRequest) {
+
+            var resultValidate = await validator.ValidateAsync(addUserFriendRequest);
+            if (!resultValidate.IsValid) {
+                return ValidationResult(resultValidate);
             }
 
-            var result = new ResponseResult(ResultCode.Success) {
-                data = userFriendResponseList
-            };
+            try {
+                var userFriendList = await _mongoDbUserFriendService.GetUserFriendList(addUserFriendRequest.UserId);
+                if (userFriendList != null && userFriendList.Any(x => x.FriendUserId == addUserFriendRequest.FriendUserId)) {
+                    return BadRequestResult(ResultCode.UserFriendExisted);
+                }
 
-            return Ok(result);
+                //verify UserId, FriendId are valid
+                var fromUser = _mongoDbUserService.GetUserAsync(addUserFriendRequest.UserId);
+                var toUser = _mongoDbUserService.GetUserAsync(addUserFriendRequest.FriendUserId);
+
+                var users = await Task.WhenAll(fromUser, toUser);
+                if(users.Any(x => x ==null)) {
+                    return BadRequestResult(ResultCode.UserNotFound);
+                }
+
+                var userFriend = new UserFriend(addUserFriendRequest.UserId, addUserFriendRequest.FriendUserId) {
+                    MessageIn = new List<UserFriendMessage>() { new UserFriendMessage() { Message = addUserFriendRequest.message ?? Constants.USER_REQUEST_TEXT } }
+                };
+
+                await _mongoDbUserFriendService.AddUserFriend(userFriend);
+
+                return Ok(new ResponseResult(ResultCode.Success));
+            }
+            catch(Exception ex) {
+                return ExceptionResult(ex);
+            }
+        }
+
+        [HttpPost]
+        public async Task<ActionResult<ResponseResult>> AddUserFriendMessage(
+            [FromServices] IValidator<AddUserFriendMessageRequest> validator,
+            AddUserFriendMessageRequest addUserFriendMessageRequest) {
+
+            var resultValidate = await validator.ValidateAsync(addUserFriendMessageRequest);
+            if (!resultValidate.IsValid) {
+                return ValidationResult(resultValidate);
+            }
+
+            var userFriendList = await _mongoDbUserFriendService.GetUserFriendList(addUserFriendMessageRequest.UserId);
+            if (userFriendList == null || userFriendList.Any(x => x.FriendUserId == addUserFriendMessageRequest.FriendUserId) == false) {
+                return BadRequestResult(ResultCode.UserFriendExisted);
+            }
+
+            await _mongoDbUserFriendService.UpdateUserFriendMessage(
+                addUserFriendMessageRequest.UserId,
+                addUserFriendMessageRequest.FriendUserId,
+                new UserFriendMessage() { Message = addUserFriendMessageRequest.Message },
+                addUserFriendMessageRequest.MessageType);
+
+
+            return Ok(new ResponseResult(ResultCode.Success));
+
         }
     }
 }

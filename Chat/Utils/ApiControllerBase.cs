@@ -13,12 +13,12 @@ namespace Chat.Utils
             this.env = env;
         }
 
-        protected BadRequestObjectResult BadRequestResult(InternalError error) {
+        protected BadRequestObjectResult BadRequestResult(ResultCode code) {
             if (env.IsDevelopment()) {
-                return BadRequest(new ResponseResult(error.code));
+                return BadRequest(new ResponseResult(code));
             }
 
-            return BadRequest(error.code);
+            return BadRequest(code);
         }
 
         protected BadRequestObjectResult ValidationResult(ValidationResult result) {

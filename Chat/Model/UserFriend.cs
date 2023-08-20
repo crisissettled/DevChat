@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.SignalR;
+using MongoDB.Bson;
 
 namespace Chat.Model
 {
@@ -8,8 +9,8 @@ namespace Chat.Model
         public FriendRequestStatus FriendStatus { get; set; } = FriendRequestStatus.Requested;
         public DateTime RequestedAt { get; set; } = DateTime.Now;
         public DateTime AcceptOrDeniedAt { get; set; }
-        public FriendRequestMessage? MessageIn { get; set; }
-        public FriendRequestMessage? MessageOut { get; set; }
+        public List<UserFriendMessage>? MessageIn { get; set; }
+        public List<UserFriendMessage>? MessageOut { get; set; }
         public bool Blocked { get; set; } = false;
 
         public UserFriend(string userId, string friendUserId) {
@@ -18,7 +19,7 @@ namespace Chat.Model
         }
     }
 
-    public class FriendRequestMessage {
+    public class UserFriendMessage {
         public string? Message { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.Now;
     }

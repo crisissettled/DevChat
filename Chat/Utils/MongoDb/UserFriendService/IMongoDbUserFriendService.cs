@@ -3,5 +3,9 @@
 namespace Chat.Utils.MongoDb.UserFirendService {
     public interface IMongoDbUserFriendService {
         Task<List<UserFriend>> GetUserFriendList(string UserId);
+
+        Task AddUserFriend(UserFriend userFriend);
+
+        Task UpdateUserFriendMessage(string UserId, string FriendId, UserFriendMessage Message, UserFriendMessageType MessageType);
     }
 }
