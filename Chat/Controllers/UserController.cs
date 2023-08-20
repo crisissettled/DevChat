@@ -1,27 +1,30 @@
 ﻿using Chat.Model;
 using Chat.Model.Request;
 using Chat.Model.Response;
+using Chat.Model.Response.Shared;
 using Chat.Utils;
 using Chat.Utils.Crypto;
-using Chat.Utils.MongoDb;
+using Chat.Utils.MongoDb.UserService;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 
 
-namespace Chat.Controllers {
+namespace Chat.Controllers
+{
 
     public class UserController : ApiControllerBase {
 
         private readonly IMongoDbUserService _mongoDbUserService;
-        private readonly ICrypto _crypto;
 
-        public UserController(IHostEnvironment env, IMongoDbUserService mongoDbUserService, ICrypto crypto) : base(env) {
-            _mongoDbUserService = mongoDbUserService;
-            _crypto = crypto;
+        public UserController(IHostEnvironment env, IMongoDbUserService mongoDbUserService) : base(env) {
+            _mongoDbUserService = mongoDbUserService;           
         }
 
         [HttpPut]
-        public async Task<IActionResult> SignUp([FromServices] IValidator<SignupRequest> validator, SignupRequest signUpRequest) {
+        public async Task<IActionResult> SignUp(
+            [FromServices] IValidator<SignupRequest> validator,
+            [FromServices] ICrypto crypto,
+            SignupRequest signUpRequest) {
 
             var result = await validator.ValidateAsync(signUpRequest);
 
@@ -33,7 +36,7 @@ namespace Chat.Controllers {
                 return BadRequestResult(new InternalError(ResultCode.UserExisted));
             }
 
-            var objUser = new User(signUpRequest.UserId, _crypto.SHA256Encrypt(signUpRequest.Password), signUpRequest.Name);
+            var objUser = new User(signUpRequest.UserId, crypto.SHA256Encrypt(signUpRequest.Password), signUpRequest.Name);
 
             try {
                 await _mongoDbUserService.CreateUserAsync(objUser);
@@ -45,7 +48,10 @@ namespace Chat.Controllers {
         }
 
         [HttpPut]
-        public async Task<ActionResult> SignIn([FromServices] IValidator<SignInRequest> validator, SignInRequest signInRequest) {
+        public async Task<ActionResult> SignIn(
+            [FromServices] IValidator<SignInRequest> validator,
+            [FromServices] ICrypto crypto,
+            SignInRequest signInRequest) {
 
             var result = await validator.ValidateAsync(signInRequest);
 
@@ -54,18 +60,12 @@ namespace Chat.Controllers {
             }
 
             var user = await _mongoDbUserService.GetUserAsync(signInRequest.UserId);
-            if(user == null || user.Password != _crypto.SHA256Encrypt(signInRequest.Password)) return Unauthorized();
+            if(user == null || user.Password != crypto.SHA256Encrypt(signInRequest.Password)) return Unauthorized();
 
             var token = Jwt.GenerateAccessToken(signInRequest.UserId);
             return Ok(token);
         }
-
-        [HttpPut]
-        public ActionResult<string> Friends(string UserId) {
-
-            return Ok("Ok");
-        }
-
+        
         [HttpPut]
         public async Task<ActionResult<ResponseResult>> SearchFriend(SearchFriendRequest searchFriendRequest) {
 
@@ -75,8 +75,8 @@ namespace Chat.Controllers {
                 return new ResponseResult(ResultCode.NoDataFound);
             }
 
-            var result = new ResponseResult(ResultCode.Success) {            
-                data = userList
+            var result = new ResponseResult(ResultCode.Success) {
+                data = userList.Select(x => new SearchFriendResponse(x.UserId, x.Name, x.Gender))
             };
 
             return Ok(result);

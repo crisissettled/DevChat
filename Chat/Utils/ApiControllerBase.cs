@@ -1,8 +1,10 @@
 ﻿using Chat.Model.Response;
+using Chat.Model.Response.Shared;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Chat.Utils {
+namespace Chat.Utils
+{
     [Route("api/[controller]/[action]")]
     [ApiController]
     public class ApiControllerBase : ControllerBase {

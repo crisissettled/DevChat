@@ -1,9 +1,8 @@
-using Chat.Model.Request;
+using Chat.Model;
 using Chat.signalR;
 using Chat.Utils;
 using Chat.Utils.Crypto;
 using Chat.Utils.MongoDb;
-using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
@@ -22,38 +21,40 @@ builder.Services.AddAuthentication(options => {
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 })
        .AddJwtBearer(options => {
-            options.RequireHttpsMetadata = false;
-            options.SaveToken = true;
-            options.TokenValidationParameters = new TokenValidationParameters {
-                ValidateIssuerSigningKey = true,
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(Jwt.AccessSecret)),
-                ValidAlgorithms = new[] { SecurityAlgorithms.HmacSha256 },
-                ValidIssuer = Jwt.Issuer,
-                ValidAudience = Jwt.Audience,
-                ValidateIssuer = true,
-                ValidateAudience = true,
-                ValidateLifetime = true,
-                ClockSkew = TimeSpan.FromSeconds(0)
-            };
-            options.Events = new JwtBearerEvents {
-                OnMessageReceived = context => {
-                    var accessToken = context.Request.Query["access_token"];
-                    var path = context.HttpContext.Request.Path;
-                    if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs/chat")) {
-                        context.Token = accessToken;
-                    }
-                    return Task.CompletedTask;
-                },
-                OnAuthenticationFailed = context => {
-                    if (context.Exception.GetType() == typeof(SecurityTokenExpiredException))
-                        context.Response.Headers.Add("tokenErr", "expired");
-                    return Task.CompletedTask;
-                }
-            };
-        });
-builder.Services.AddSingleton<IMongoDbUserService,MongoDbUserService>();
-builder.Services.AddValidatorsFromAssemblyContaining<SignUpRequestValidator>();
+           options.RequireHttpsMetadata = false;
+           options.SaveToken = true;
+           options.TokenValidationParameters = new TokenValidationParameters {
+               ValidateIssuerSigningKey = true,
+               IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(Jwt.AccessSecret)),
+               ValidAlgorithms = new[] { SecurityAlgorithms.HmacSha256 },
+               ValidIssuer = Jwt.Issuer,
+               ValidAudience = Jwt.Audience,
+               ValidateIssuer = true,
+               ValidateAudience = true,
+               ValidateLifetime = true,
+               ClockSkew = TimeSpan.FromSeconds(0)
+           };
+           options.Events = new JwtBearerEvents {
+               OnMessageReceived = context => {
+                   var accessToken = context.Request.Query["access_token"];
+                   var path = context.HttpContext.Request.Path;
+                   if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs/chat")) {
+                       context.Token = accessToken;
+                   }
+                   return Task.CompletedTask;
+               },
+               OnAuthenticationFailed = context => {
+                   if (context.Exception.GetType() == typeof(SecurityTokenExpiredException))
+                       context.Response.Headers.Add("tokenErr", "expired");
+                   return Task.CompletedTask;
+               }
+           };
+       });
+
 builder.Services.AddSingleton<ICrypto, Crypto>();
+
+builder.Services.AddMongoDbServices();
+builder.Services.AddFluentValidators();
 
 var app = builder.Build();
 

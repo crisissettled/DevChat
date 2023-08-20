@@ -1,5 +1,7 @@
-﻿namespace Chat.Model.Response {
-    public enum ResultCode {
+﻿namespace Chat.Model.Response.Shared
+{
+    public enum ResultCode
+    {
         Success = 2000,
         Failed = 4000,
         UserExisted = 4001,
@@ -7,9 +9,12 @@
         Error = 5000
     }
 
-    public static class ResultCodeExtensions {
-        public static string GetMessage(this ResultCode code) {
-            switch (code) {
+    public static class ResultCodeExtensions
+    {
+        public static string GetMessage(this ResultCode code)
+        {
+            switch (code)
+            {
                 case ResultCode.UserExisted:
                     return "User's already existed";
                 case ResultCode.Success:
@@ -20,7 +25,7 @@
 
             return $"{code} - Unknow";
         }
-      
+
     }
-     
+
 }
