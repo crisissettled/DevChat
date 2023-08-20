@@ -1,40 +1,28 @@
 ﻿using Chat.Model.Response;
 using Chat.Model.Response.Shared;
 using FluentValidation.Results;
+using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Chat.Utils
-{
+namespace Chat.Utils {
     [Route("api/[controller]/[action]")]
     [ApiController]
     public class ApiControllerBase : ControllerBase {
-        private readonly IHostEnvironment env;
+        private readonly bool IsDevelopment;
         public ApiControllerBase(IHostEnvironment env) {
-            this.env = env;
+            IsDevelopment = env.IsDevelopment();
         }
 
         protected BadRequestObjectResult BadRequestResult(ResultCode code) {
-            if (env.IsDevelopment()) {
-                return BadRequest(new ResponseResult(code));
-            }
-
-            return BadRequest(code);
+            return BadRequest(new ResponseResult(code, IsDevelopment));
         }
 
         protected BadRequestObjectResult ValidationResult(ValidationResult result) {
-            if (env.IsDevelopment()) {
-                return BadRequest(result);
-            }
-
-            return BadRequest(result.Errors);
+            return BadRequest(new ResponseResult(ResultCode.ValidationFailed, IsDevelopment) { data = IsDevelopment == true ? result : result.Errors });
         }
 
-        protected ObjectResult ExceptionResult(Exception ex, string? message = null) {
-            if (env.IsDevelopment()) {
-                return new ObjectResult(ex.ToString()) { StatusCode = StatusCodes.Status500InternalServerError };
-            }
-
-            return new ObjectResult(message ?? "Unexcepted error occurred!") { StatusCode = StatusCodes.Status500InternalServerError };
+        protected ObjectResult ExceptionResult(Exception ex) {
+            return new ObjectResult(new ResponseResult(ResultCode.Error, IsDevelopment) { data = IsDevelopment ? ex : "" }) { StatusCode = StatusCodes.Status500InternalServerError };
         }
     }
 }

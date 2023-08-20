@@ -1,9 +1,14 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
 
 namespace Chat.Model
 {
     public class UserFriend {
+
+        [BsonId]
+        [BsonRepresentation(BsonType.ObjectId)]
+        public string? Id { get; set; }
         public string UserId { get; set; }
         public string FriendUserId { get; set; }
         public FriendRequestStatus FriendStatus { get; set; } = FriendRequestStatus.Requested;
