@@ -88,7 +88,7 @@ namespace Chat.Controllers {
                 }
 
                 var userFriend = new UserFriend(addUserFriendRequest.UserId, addUserFriendRequest.FriendUserId) {
-                    MessageIn = new List<UserFriendMessage>() { new UserFriendMessage() { Message = addUserFriendRequest.message ?? Constants.USER_REQUEST_TEXT } }
+                    MessageOut = new List<UserFriendMessage>() { new UserFriendMessage() { Message = addUserFriendRequest.message ?? Constants.USER_REQUEST_TEXT } }
                 };
 
                 await _mongoDbUserFriendService.AddUserFriend(userFriend);
