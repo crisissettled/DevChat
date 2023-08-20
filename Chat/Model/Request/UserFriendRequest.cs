@@ -5,7 +5,7 @@ namespace Chat.Model.Request {
 
     public class UserFriendRequestValidator : AbstractValidator<GetUserFriendsRequest> {
         public UserFriendRequestValidator() {
-            RuleFor(x => x.UserId).NotNull().NotEmpty();
+            RuleFor(x => x.UserId).NotEmpty();
         }
     }
 
@@ -13,8 +13,8 @@ namespace Chat.Model.Request {
 
     public class AddUserFriendRequestValidator: AbstractValidator<AddUserFriendRequest> {
         public AddUserFriendRequestValidator() {
-            RuleFor(x => x.UserId).NotNull().NotEmpty();
-            RuleFor(x => x.FriendUserId).NotNull().NotEmpty();
+            RuleFor(x => x.UserId).NotEmpty();
+            RuleFor(x => x.FriendUserId).NotEmpty();
         }
     }
 
@@ -22,10 +22,10 @@ namespace Chat.Model.Request {
 
     public class AddUserFriendMessageRequestValidator : AbstractValidator<AddUserFriendMessageRequest> {
         public AddUserFriendMessageRequestValidator() {
-            RuleFor(x => x.UserId).NotNull().NotEmpty();
-            RuleFor(x => x.FriendUserId).NotNull().NotEmpty();
+            RuleFor(x => x.UserId).NotEmpty();
+            RuleFor(x => x.FriendUserId).NotEmpty();
             RuleFor(x => x.Message).NotNull().NotEmpty();
-            RuleFor(x => x.MessageType).NotNull().IsInEnum();
+            RuleFor(x => x.MessageType).IsInEnum();
         }
     }
 }
