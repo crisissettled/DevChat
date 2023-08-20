@@ -7,5 +7,6 @@ namespace Chat.Utils.MongoDb.UserService {
         Task<User> GetUserAsync(string UserId);
         Task<List<User>> GetUserListByKeywordAsync(string Keyword);
         Task CreateUserAsync(User user);
+        Task UpdateUserAsync(User user);
     }
 }
