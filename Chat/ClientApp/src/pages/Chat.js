@@ -1,5 +1,6 @@
 ﻿import React, { useState, useEffect } from 'react'
 import { HubConnectionBuilder, HttpTransportType, HubConnectionState, LogLevel } from '@microsoft/signalr';
+import { useSelector } from 'react-redux'
 export function Chat() {
     const [connection, setConnection] = useState(null);
     const [conStatus, setConStatus] = useState("");
@@ -7,33 +8,15 @@ export function Chat() {
     const [messageOut, setMessageOut] = useState(null);
     const [msgArrIn, setMsgArrIn] = useState([]);
 
+    const signInState = useSelector((state) => state.signin)
+
 
     const hubChatEndPoint = '/hubs/chat'
 
     useEffect(() => {
         const con = new HubConnectionBuilder()
             .withUrl(`${hubChatEndPoint}`, {
-                async accessTokenFactory() {
-                    try {
-                        let res = await fetch(
-                            "/api/user/signin",
-                            {
-                                method: "PUT", 
-                                headers: {
-                                    "Content-Type": "application/json",
-                                },
-                                body: JSON.stringify({
-                                    UserId: "admin",
-                                    Password:"abc"
-                                })
-                            }
-                        );
-                        let token = await res.text();
-                        return token;
-                    } catch (ex) {
-                        console.log(ex, "fetch token error");
-                    }
-                },
+                accessTokenFactory: () => signInState?.token,               
                 skipNegotiation: true,
                 transport: HttpTransportType.WebSockets
             })

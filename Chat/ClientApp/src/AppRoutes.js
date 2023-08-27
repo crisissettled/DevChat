@@ -3,11 +3,17 @@ import { SignIn } from "./pages/SignIn";
 import { SignUp } from "./pages/SignUp";
 import { NotFound } from "./pages/NotFound"
 
+import { PrivateRoute } from './utils/PrivateRoute'
+
 const AppRoutes = [
     {
         index: true,
-        element: <Chat />
-    },
+        element: <PrivateRoute><Chat /></PrivateRoute>
+    },  
+    {
+        path: '/chat',
+        element: <PrivateRoute><Chat /></PrivateRoute>
+    }, 
     {
         path: '/signin',
         element: <SignIn />
