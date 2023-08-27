@@ -14,7 +14,7 @@ export const signInSlice = createSlice({
             // immutable state based off those changes.
             // Also, no return statement is required from these functions.
 
-            console.log(action,"action in Sigin Slice")
+            //console.log(action,"action in Sigin Slice")
             state.isSignedIn = action.payload.signedIn;
             state.token = action.payload.token;
         }

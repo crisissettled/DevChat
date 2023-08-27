@@ -9,7 +9,7 @@ export function SignIn() {
 
     const dispatch = useDispatch()
     const signInState = useSelector((state) => state.signin)
-    console.log(signInState, "signInState in SignIn page");
+    //console.log(signInState, "signInState in SignIn page");
     if (signInState?.isSignedIn === true) return <Navigate to="/chat" replace />;
 
     const handleSubmit = async (e) => {
