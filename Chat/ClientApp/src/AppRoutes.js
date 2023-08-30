@@ -4,15 +4,16 @@ import { SignUp } from "./pages/SignUp";
 import { NotFound } from "./pages/NotFound"
 
 import { PrivateRoute } from './utils/PrivateRoute'
+import { Layout } from "./layout/Layout";
 
 const AppRoutes = [
     {
         index: true,
-        element: <PrivateRoute><Chat /></PrivateRoute>
+        element: <Layout><PrivateRoute><Chat /></PrivateRoute></Layout>
     },  
     {
         path: '/chat',
-        element: <PrivateRoute><Chat /></PrivateRoute>
+        element: <Layout><PrivateRoute><Chat /></PrivateRoute></Layout>
     }, 
     {
         path: '/signin',
@@ -20,7 +21,7 @@ const AppRoutes = [
     },
     {
         path: '/signup',
-        element: <SignUp />
+        element: <Layout><SignUp /></Layout>
     },
     {
         path: '*',

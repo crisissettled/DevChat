@@ -1,5 +1,5 @@
 ﻿import { useState } from "react"
-import { Navigate } from "react-router-dom";
+import { Navigate, Link } from "react-router-dom";
 import { doSignIn } from '../app/SignIn/signInSlice'
 import { useSelector, useDispatch } from 'react-redux'
 
@@ -36,26 +36,21 @@ export function SignIn() {
     }
 
     return (
+        <form className="d-flex flex-column align-items-center justify-content-center" style={{ marginTop: 100 }}>
+            <p className="text-center h1 mb-5 mx-1 mx-md-4 mt-3">Please Sign in</p>
+            <div className="col-8 col-sm-7 col-md-6 col-lg-5 col-xl-4 col-xxl-3 my-2">
+                <input type="text" className="form-control" onChange={e => setUserId(e.target.value)} placeholder="User Id" />
+            </div>
+            <div className="col-8 col-sm-7 col-md-6 col-lg-5 col-xl-4 col-xxl-3 my-2">
+                <input type="password" className="form-control" onChange={e => setPassword(e.target.value)} placeholder="Password" />
+            </div>
 
-        <form className="row g-3">
-            <div>
-                <div className="col-5">
-                    <label className="form-label">User
-                        <input type="text" className="form-control" onChange={e => setUserId(e.target.value)} />
-                    </label>
-                </div>
+            <div className="col-8 col-sm-7 col-md-6 col-lg-5 col-xl-4 col-xxl-3 my-2">
+                <button type="submit" className="btn btn-primary btn-lg w-100" onClick={e => handleSubmit(e)}>Sign in</button>
             </div>
-            <div>
-                <div className="col-5">
-                    <label className="form-label">Password
-                        <input type="password" className="form-control" onChange={e => setPassword(e.target.value)} />
-                    </label>
-                </div>
-            </div>
-            <div className="col-12">
-                <button type="submit" className="btn btn-primary btn-lg" onClick={e => handleSubmit(e)}>Sign in</button>
+            <div className="col-8 col-sm-7 col-md-6 col-lg-5 col-xl-4 col-xxl-3 my-3 text-center">
+                Not a member? <Link to="/signup">Signup</Link>
             </div>
         </form>
-
     )
 }
