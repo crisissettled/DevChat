@@ -53,7 +53,7 @@ export function SignIn() {
                 </div>
             </div>
             <div className="col-12">
-                <button type="submit" className="btn btn-primary" onClick={e => handleSubmit(e)}>Sign in</button>
+                <button type="submit" className="btn btn-primary btn-lg" onClick={e => handleSubmit(e)}>Sign in</button>
             </div>
         </form>
 
