@@ -48,7 +48,7 @@ export function SignUp() {
     }
 
     return (
-        <section className="mt-xxl-5 mx-xl-3">
+        <section className="mt-xxl-5 mx-xl-3 my-5">
             <div className="row d-flex justify-content-center align-items-center h-100">
                 <div className="col-lg-12 col-xl-11">
                     <div className="card text-black" style={{ borderRadius: 25 }} >
