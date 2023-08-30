@@ -1,14 +1,13 @@
 ﻿import { useEffect, useState } from "react"
 import { Navigate, Link } from "react-router-dom";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faUser, faIdCard, faLock, faKey } from '@fortawesome/free-solid-svg-icons'
+import { faUser, faLock, faKey } from '@fortawesome/free-solid-svg-icons'
 import { RESULT_CODE_SUCCESS } from '../utils/Constants'
 import signUpImg from "../asset/images/signup.png";
 
 export function SignUp() {
     const [userId, setUserId] = useState("");
-    const [password, setPassword] = useState("");
-    const [name, setName] = useState("");
+    const [password, setPassword] = useState("");  
 
     const [isSuccess, setIsSuccess] = useState(false);
     const [toSignInPage, setToSignInPage] = useState(false);
@@ -32,7 +31,7 @@ export function SignUp() {
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify({ userId, password, name }),
+            body: JSON.stringify({ userId, password, name: userId }), // name is userId by default
         })
 
         if (response.ok) {
@@ -67,11 +66,7 @@ export function SignUp() {
                                                 <div className="d-flex flex-row align-items-center mb-4">
                                                     <FontAwesomeIcon icon={faUser} size="xl" fixedWidth />
                                                     <input type="text" className="form-control ms-2" placeholder="User ID" onChange={e => setUserId(e.target.value)} />
-                                                </div>
-                                                <div className="d-flex flex-row align-items-center mb-4">
-                                                    <FontAwesomeIcon icon={faIdCard} size="xl" fixedWidth />
-                                                    <input type="text" className="form-control ms-2" placeholder="Your Name" onChange={e => setName(e.target.value)} />
-                                                </div>
+                                                </div>                                                
                                                 <div className="d-flex flex-row align-items-center mb-4">
                                                     <FontAwesomeIcon icon={faLock} size="xl" fixedWidth />
                                                     <input type="password" className="form-control ms-2" placeholder="Password" onChange={e => setPassword(e.target.value)} />
