@@ -38,10 +38,10 @@ export function SignIn() {
     return (
         <form className="d-flex flex-column align-items-center justify-content-center" style={{ marginTop: 100 }}>
             <p className="text-center h1 mb-5 mx-1 mx-md-4 mt-3">Please Sign in</p>
-            <div className="col-8 col-sm-7 col-md-6 col-lg-5 col-xl-4 col-xxl-3 my-2">
+            <div className="col-8 col-sm-7 col-md-6 col-lg-5 col-xl-4 col-xxl-3 my-3">
                 <input type="text" className="form-control" onChange={e => setUserId(e.target.value)} placeholder="User Id" />
             </div>
-            <div className="col-8 col-sm-7 col-md-6 col-lg-5 col-xl-4 col-xxl-3 my-2">
+            <div className="col-8 col-sm-7 col-md-6 col-lg-5 col-xl-4 col-xxl-3 my-3">
                 <input type="password" className="form-control" onChange={e => setPassword(e.target.value)} placeholder="Password" />
             </div>
 

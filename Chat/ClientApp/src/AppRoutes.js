@@ -1,27 +1,31 @@
-import { Chat } from "./pages/Chat";
-import { SignIn } from "./pages/SignIn";
-import { SignUp } from "./pages/SignUp";
-import { NotFound } from "./pages/NotFound"
-
+import { Chat, SignIn, SignUp, NotFound, Profile, SignOut } from "./pages";
 import { PrivateRoute } from './utils/PrivateRoute'
-import { Layout } from "./layout/Layout";
+import { Layout,LayoutChat } from "./layout";
 
 const AppRoutes = [
     {
         index: true,
-        element: <Layout><PrivateRoute><Chat /></PrivateRoute></Layout>
+        element: <LayoutChat><PrivateRoute><Chat /></PrivateRoute></LayoutChat>
     },  
     {
         path: '/chat',
-        element: <Layout><PrivateRoute><Chat /></PrivateRoute></Layout>
+        element: <LayoutChat><PrivateRoute><Chat /></PrivateRoute></LayoutChat>
     }, 
+    {
+        path: '/profile',
+        element: <LayoutChat><PrivateRoute><Profile /></PrivateRoute></LayoutChat>
+    }, 
+    {
+        path: '/signup',
+        element: <Layout><SignUp /></Layout>
+    },
     {
         path: '/signin',
         element: <SignIn />
     },
     {
-        path: '/signup',
-        element: <Layout><SignUp /></Layout>
+        path: '/signout',
+        element: <SignOut />
     },
     {
         path: '*',

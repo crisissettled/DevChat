@@ -1,11 +1,11 @@
 import React from 'react';
 import { Container } from 'reactstrap';
-import { NavMenu } from '../components/nav/NavMenu';
+import { NavMenuChat } from '../components/nav/NavMenuChat'
 
-export function Layout({ children}) {
+export function LayoutChat({ children}) {
     return (
         <div>
-            <NavMenu />
+            <NavMenuChat />
             <Container tag="main">
                 {children}
             </Container>
