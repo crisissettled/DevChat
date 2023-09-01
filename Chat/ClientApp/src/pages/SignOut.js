@@ -1,11 +1,23 @@
-﻿import { useState } from "react"
-import { Navigate, Link } from "react-router-dom";
-import chatNow from '../asset/images/chat_now.png'
+﻿ 
+import { useDispatch } from 'react-redux'
+import { Link } from "react-router-dom";
+import { doSignOut } from '../app/User/userSlice'
+import { Logo } from '../components/logo/Logo'
+ 
 
 export function SignOut() {
-
+    const dispatch = useDispatch();
 
     return (
-        <div className="d-flex align-items-center justify-content-center fs-2" style={{ width: 80, height:70, borderRadius: "50%", backgroundColor: "#3398DB" ,color:"#fff"}}>Chat</div>
+        <div className="d-flex flex-column align-items-center" style={{ marginTop: 120 }}>
+            <Logo />
+            <div className="border border-1 border-secondary my-3 rounded-1 p-3">
+                <p className="fs-3 p-3 text-muted text-center" style={{ maxWidth: 350 }}>Are you sure you want to sign out?</p>
+                <div className="text-center">
+                    <button type="button" className="btn btn-warning btn-lg btn-block w-75" onClick = { () => dispatch(doSignOut())}>Sign Out</button>
+                </div>
+                <div className="text-center"><Link to="/">Back to chat</Link></div>
+            </div>
+        </div>
     )
 }

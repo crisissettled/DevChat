@@ -1,6 +1,6 @@
 ﻿import { useState } from "react"
 import { Navigate, Link } from "react-router-dom";
-import { doSignIn } from '../app/SignIn/signInSlice'
+import { doSignIn } from '../app/User/userSlice'
 import { useSelector, useDispatch } from 'react-redux'
 
 export function SignIn() {
@@ -8,9 +8,9 @@ export function SignIn() {
     const [password, setPassword] = useState("");
 
     const dispatch = useDispatch()
-    const signInState = useSelector((state) => state.signin)
-    //console.log(signInState, "signInState in SignIn page");
-    if (signInState?.isSignedIn === true) return <Navigate to="/chat" replace />;
+    const userState = useSelector((state) => state.user)
+    //console.log(userState, "userState in SignIn page");
+    if (userState?.isSignedIn === true) return <Navigate to="/chat" replace />;
 
     const handleSubmit = async (e) => {
         e.preventDefault()
@@ -25,9 +25,9 @@ export function SignIn() {
         })
 
         if (response.ok) {
-            const signInState = await response.json();
-            if (signInState?.data) {
-                dispatch(doSignIn({ signedIn: true, token: signInState?.data }))
+            const userState = await response.json();
+            if (userState?.data) {
+                dispatch(doSignIn({ signedIn: true, token: userState?.data }))
             }
         }
         else {

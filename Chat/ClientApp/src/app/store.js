@@ -1,9 +1,9 @@
 ﻿import { configureStore } from '@reduxjs/toolkit'
 
-import signInReducer from './SignIn/signInSlice'
+import userReducer from './User/userSlice'
 
 export default configureStore({
     reducer: {
-        signin: signInReducer
+        user: userReducer
     },
 })

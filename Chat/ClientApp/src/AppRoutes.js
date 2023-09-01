@@ -25,7 +25,7 @@ const AppRoutes = [
     },
     {
         path: '/signout',
-        element: <SignOut />
+        element: <PrivateRoute><SignOut /></PrivateRoute>
     },
     {
         path: '*',

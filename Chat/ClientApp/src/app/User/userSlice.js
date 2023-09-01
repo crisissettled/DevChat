@@ -1,7 +1,7 @@
 ﻿import { createSlice } from '@reduxjs/toolkit'
 
-export const signInSlice = createSlice({
-    name: 'signin',
+export const userSlice = createSlice({
+    name: 'user',
     initialState: {
         isSignedIn: false,
         token: ""
@@ -17,11 +17,15 @@ export const signInSlice = createSlice({
             //console.log(action,"action in Sigin Slice")
             state.isSignedIn = action.payload.signedIn;
             state.token = action.payload.token;
+        },
+        doSignOut: (state) => {
+            state.isSignedIn = false;
+            state.token = "";
         }
     },
 })
 
 // Action creators are generated for each case reducer function
-export const { doSignIn } = signInSlice.actions
+export const { doSignIn, doSignOut } = userSlice.actions
 
-export default signInSlice.reducer
+export default userSlice.reducer
