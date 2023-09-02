@@ -4,7 +4,19 @@ export const userSlice = createSlice({
     name: 'user',
     initialState: {
         isSignedIn: false,
-        token: ""
+        token: "",
+        info: {
+            "userId": "",
+            "name": "",
+            "email": "",
+            "password": "",
+            "newPassword": "",           
+            "gender": 0,
+            "province": "",
+            "city": "",
+            "address": "",
+            "phone": ""           
+        }
     },
     reducers: {
         doSignIn: (state, action) => {
