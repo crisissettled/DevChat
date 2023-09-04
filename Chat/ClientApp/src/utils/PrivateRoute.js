@@ -17,7 +17,7 @@ export function PrivateRoute({ children, redirectPath = '/signin' }) {
 
         if (response.status !== 401) {
             var signInState = await response.json();
-            dispatch(doSignIn({ signedIn: true, token: signInState?.data }))    
+            dispatch(doSignIn({ signedIn: true, token: signInState?.data, userId: signInState?.data.userId }))    
             setRefreshStage(0)
         }
         setRefreshStage(2)
