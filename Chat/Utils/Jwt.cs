@@ -1,6 +1,7 @@
 ﻿using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace Chat.Utils {
@@ -20,6 +21,14 @@ namespace Chat.Utils {
                 expires: DateTime.Now.AddSeconds(AccessExpiration), signingCredentials: credentials,
                 notBefore: DateTime.Now);
             return new JwtSecurityTokenHandler().WriteToken(jwtAccessToken);
+        }
+
+
+        public static string GenerateRefreshToken(string UserId) {
+            var randomNumber = new byte[64];
+            using var rng = RandomNumberGenerator.Create();
+            rng.GetBytes(randomNumber);
+            return $"{UserId}{Convert.ToBase64String(randomNumber)}";
         }
     }
 }

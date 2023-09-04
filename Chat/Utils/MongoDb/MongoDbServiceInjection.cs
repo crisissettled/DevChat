@@ -6,6 +6,7 @@ namespace Chat.Utils.MongoDb {
         public static IServiceCollection AddMongoDbServices(this IServiceCollection services) {
             services.AddSingleton<IMongoDbUserService, MongoDbUserService>();
             services.AddSingleton<IMongoDbUserFriendService, MongoDbUserFriendService>();
+            services.AddSingleton<IMongoDbLogInStateService, MongoDbLogInStateService>();
 
             return services;
         }

@@ -55,6 +55,7 @@ builder.Services.AddSingleton<ICrypto, Crypto>();
 
 builder.Services.AddMongoDbServices();
 builder.Services.AddFluentValidators();
+builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
 var app = builder.Build();
 

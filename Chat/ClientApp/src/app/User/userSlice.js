@@ -5,6 +5,7 @@ export const userSlice = createSlice({
     initialState: {
         isSignedIn: false,
         token: "",
+        userId:"",
         info: {
             "userId": "",
             "name": "",
@@ -29,10 +30,12 @@ export const userSlice = createSlice({
             //console.log(action,"action in Sigin Slice")
             state.isSignedIn = action.payload.signedIn;
             state.token = action.payload.token;
+            state.userId = action.payload.userId;
         },
         doSignOut: (state) => {
             state.isSignedIn = false;
             state.token = "";
+            state.userId = "";
         }
     },
 })

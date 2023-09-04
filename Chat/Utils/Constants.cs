@@ -6,6 +6,9 @@
         public const string IDX_USER_UserId = "idx_user_userId";
 
 
+        //session
+        public const string SESSION_COOKIE_KEY = "ChatRT";
+        public const int SESSION_KEEP_LOGGED_IN_DAYS = 30;
 
         //lang
         public const string USER_REQUEST_TEXT = "User Request";

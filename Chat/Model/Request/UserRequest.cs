@@ -11,7 +11,7 @@ namespace Chat.Model.Request {
         }
     }
 
-    public record SignInRequest(string UserId, string Password);
+    public record SignInRequest(string UserId, string Password,bool KeepLoggedIn);
     public class SignInRequestValidator : AbstractValidator<SignInRequest> {
         public SignInRequestValidator() {
             RuleFor(x => x.UserId).NotNull().NotEmpty();
@@ -43,6 +43,13 @@ namespace Chat.Model.Request {
             RuleFor(x => x.Email).Length(5, 50).When(x => !string.IsNullOrEmpty(x.Email));
         }
     }
+
+    //public record SignOutRequest(string UserId);
+    //public class SignOutRequestValidator : AbstractValidator<SignOutRequest> {
+    //    public SignOutRequestValidator() {
+    //        RuleFor(x => x.UserId).NotEmpty();
+    //    }
+    //}
 
     public record SearchFriendRequest(string SearchKeyword);
     public class SearchFriendRequestValidator : AbstractValidator<SearchFriendRequest> {

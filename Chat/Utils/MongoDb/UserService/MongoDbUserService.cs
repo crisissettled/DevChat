@@ -34,7 +34,6 @@ namespace Chat.Utils.MongoDb.UserService {
             await _userCollection.InsertOneAsync(user);
         }
 
-
         public async Task UpdateUserAsync(User user) {
             var filter = Builders<User>.Filter.Eq(x => x.UserId, user.UserId);
 

@@ -25,5 +25,28 @@ namespace Chat.Model {
         }
     }
 
+
+    public class LogInState {
+        [BsonId]
+        [BsonRepresentation(BsonType.ObjectId)]
+        public string? Id { get; set; }
+        public string UserId { get; set;}
+        public string Token { get; set;}
+        public string RefreshToken { get; set;}
+        public bool KeepLoggedIn { get; set; } = false;
+        public bool IsSignedOut { get; set;} = false;
+        [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+        [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
+        public DateTime UpdatedAt { get; set; } = DateTime.Now;
+
+        public LogInState(string UserId,string Token, string RefreshToken) {
+            this.UserId = UserId;
+            this.Token = Token;
+            this.RefreshToken = RefreshToken;
+        }
+    }
+
    
 }
