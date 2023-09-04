@@ -2,12 +2,12 @@
 
 import { FETCH_STATUS_PENDING, FETCH_STATUS_FULFILLED, FETCH_STATUS_REJECTED } from '../../utils/Constants'
 
-const userFriendEndpoint = '/api/User/SearchFriend'
+const searchFriendEndpoint = '/api/User/SearchFriend'
 
-export const fetchUserFriend = createAsyncThunk(
-    userFriendEndpoint,
+export const searchUserFriend = createAsyncThunk(
+    searchFriendEndpoint,
     async (SearchKeyword = '') => {
-        let response = await fetch(userFriendEndpoint, {
+        let response = await fetch(searchFriendEndpoint, {
             method: 'PUT',
             headers: {
                 "Content-Type": "application/json",
@@ -18,8 +18,8 @@ export const fetchUserFriend = createAsyncThunk(
     }
 )
 
-const userFriendSlice = createSlice({
-    name: 'users',
+const searchFriendSlice = createSlice({
+    name: 'searchFriend',
     initialState: {
         status: "idle",
         data: [],
@@ -27,15 +27,14 @@ const userFriendSlice = createSlice({
     },
     reducers: {},
     extraReducers: (builder) => {
-        builder.addCase(fetchUserFriend.pending, (state, action) => {
+        builder.addCase(searchUserFriend.pending, (state, action) => {
             state.status = FETCH_STATUS_PENDING
-        }).addCase(fetchUserFriend.fulfilled, (state, { payload }) => {
+        }).addCase(searchUserFriend.fulfilled, (state, { payload }) => {
             state.status = FETCH_STATUS_FULFILLED
             state.data = payload.data
-        }).addCase(fetchUserFriend.rejected, (state, action) => {
+        }).addCase(searchUserFriend.rejected, (state, action) => {
             state.status = FETCH_STATUS_REJECTED
             if (action.payload) {
-                // Since we passed in `MyKnownError` to `rejectValue` in `updateUser`, the type information will be available here.
                 state.error = action.payload
             } else {
                 state.error = action.error
@@ -45,4 +44,4 @@ const userFriendSlice = createSlice({
 })
 
 
-export default userFriendSlice.reducer
+export default searchFriendSlice.reducer
