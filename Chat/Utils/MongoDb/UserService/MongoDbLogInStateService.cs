@@ -38,7 +38,9 @@ namespace Chat.Utils.MongoDb.UserService {
 
         public async Task UpdateSignOut(string UserId, bool IsSignedOut = true) {
             var filter = Builders<LogInState>.Filter.Eq(x => x.UserId, UserId);
-            var update = Builders<LogInState>.Update.Set(x => x.IsSignedOut, IsSignedOut);
+            var update = Builders<LogInState>.Update.Set(x => x.IsSignedOut, IsSignedOut)
+                .Set(x => x.Token,string.Empty)
+                .Set(x => x.RefreshToken,string.Empty);
 
             await _logInStateCollection.UpdateOneAsync(filter, update);
         }
