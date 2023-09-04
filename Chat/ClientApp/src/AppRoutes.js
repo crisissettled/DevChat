@@ -1,4 +1,4 @@
-import { Chat, SignIn, SignUp, NotFound, Profile, SignOut } from "./pages";
+import { Chat, SignIn, SignUp, NotFound, Profile, SignOut, FindFriend } from "./pages";
 import { PrivateRoute } from './utils/PrivateRoute'
 import { Layout,LayoutChat } from "./layout";
 
@@ -11,6 +11,10 @@ const AppRoutes = [
         path: '/chat',
         element: <LayoutChat><PrivateRoute><Chat /></PrivateRoute></LayoutChat>
     }, 
+    {
+        path: '/findfriend',
+        element: <LayoutChat><PrivateRoute><FindFriend /></PrivateRoute></LayoutChat>
+    },
     {
         path: '/profile',
         element: <LayoutChat><PrivateRoute><Profile /></PrivateRoute></LayoutChat>
