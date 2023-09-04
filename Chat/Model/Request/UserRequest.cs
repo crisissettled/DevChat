@@ -52,9 +52,9 @@ namespace Chat.Model.Request {
     //}
 
     public record SearchFriendRequest(string SearchKeyword);
-    public class SearchFriendRequestValidator : AbstractValidator<SearchFriendRequest> {
-        public SearchFriendRequestValidator() {
-            RuleFor(x => x.SearchKeyword).NotEmpty();
-        }
-    }
+    //public class SearchFriendRequestValidator : AbstractValidator<SearchFriendRequest> {
+    //    public SearchFriendRequestValidator() {
+    //        RuleFor(x => x.SearchKeyword).NotEmpty();
+    //    }
+    //}
 }
