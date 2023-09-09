@@ -43,7 +43,7 @@ export function FindFriend() {
                                     <th>Gender</th>
                                     <th>Province</th>
                                     <th>City</th>
-                                    <th></th>
+                                    <th>Friend Request</th>
                                 </tr>
                             </thead>
                             <tbody>
