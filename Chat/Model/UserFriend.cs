@@ -1,9 +1,7 @@
-﻿using Microsoft.AspNetCore.SignalR;
-using MongoDB.Bson;
+﻿using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
-namespace Chat.Model
-{
+namespace Chat.Model {
     public class UserFriend {
 
         [BsonId]
@@ -20,7 +18,7 @@ namespace Chat.Model
         public DateTime AcceptOrDeniedAt { get; set; }
         public List<UserFriendMessage> MessageIn { get; set; } = new List<UserFriendMessage>();
         public List<UserFriendMessage> MessageOut { get; set; } = new List<UserFriendMessage>();
-        public bool Blocked { get; set; } = false;
+        public bool? Blocked { get; set; } = null;
 
         public UserFriend(string userId, string friendUserId) {
             UserId = userId;

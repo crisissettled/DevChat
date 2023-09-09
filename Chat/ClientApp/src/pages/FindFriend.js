@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from 'react-redux'
 import { Spinner } from '../components/spinner/Spinner'
 import { FETCH_STATUS_PENDING, FETCH_STATUS_FULFILLED } from '../utils/Constants'
 import { searchUserFriend } from '../app/User/searchFriendSlice'
+import { getUserFriends } from '../app/UserFriend/userFriendSlice'
 import { AddFriendRow } from '../components/addfriend/AddFriendRow';
 
 
@@ -17,7 +18,8 @@ export function FindFriend() {
     const dispatch = useDispatch();
 
     useEffect(() => {
-        dispatch(searchUserFriend()) // get all
+        dispatch(searchUserFriend()) // get all users 
+        dispatch(getUserFriends(user.userId)) // get current user's friend
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 

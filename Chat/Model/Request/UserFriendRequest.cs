@@ -1,7 +1,7 @@
 ﻿using FluentValidation;
 
 namespace Chat.Model.Request {
-    public record GetUserFriendsRequest (string UserId,bool Blocked = false);
+    public record GetUserFriendsRequest (string UserId,bool? Blocked =null);
 
     public class UserFriendRequestValidator : AbstractValidator<GetUserFriendsRequest> {
         public UserFriendRequestValidator() {
