@@ -61,6 +61,8 @@ namespace Chat.Controllers {
             [FromServices] ICrypto crypto,
             UpdateProfileRequest updateProfileRequest) {
 
+            if (updateProfileRequest == null) return BadRequest(new ResponseResult(ResultCode.BadDataRequest, IsDevelopment));
+
             var resultValidate = await validator.ValidateAsync(updateProfileRequest);
             if (!resultValidate.IsValid) {
                 return ValidationResult(resultValidate);
@@ -75,7 +77,7 @@ namespace Chat.Controllers {
 
             var newUser = new User(
                     updateProfileRequest.UserId,
-                    string.IsNullOrEmpty(updateProfileRequest.Password) == true ? "" : crypto.SHA256Encrypt(updateProfileRequest.NewPassword),
+                    string.IsNullOrEmpty(updateProfileRequest.Password) == true || string.IsNullOrEmpty(updateProfileRequest.NewPassword) == true ? "" : crypto.SHA256Encrypt(updateProfileRequest.NewPassword),
                     updateProfileRequest.Name) {
                 Gender = updateProfileRequest.Gender,
                 Province = updateProfileRequest.Province,

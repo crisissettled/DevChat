@@ -25,15 +25,23 @@ const userFriendSlice = createSlice({
         status: "idle",
         data: [],
         error: null,
+        individualStatus: {}
     },
     reducers: {},
     extraReducers: (builder) => {
-        builder.addCase(addUserFriend.pending, (state, action) => {
+        builder.addCase(addUserFriend.pending, (state, { meta }) => {
+         
+            let userIdAndFriendId = `${meta.arg.userId}_${meta.arg.friendUserId}`;
+            state.individualStatus[userIdAndFriendId] = FETCH_STATUS_PENDING
             state.status = FETCH_STATUS_PENDING
-        }).addCase(addUserFriend.fulfilled, (state, { payload }) => {
+        }).addCase(addUserFriend.fulfilled, (state, { payload,meta}) => {
+            let userIdAndFriendId = `${meta.arg.userId}_${meta.arg.friendUserId}`;
+            state.individualStatus[userIdAndFriendId] = FETCH_STATUS_FULFILLED
+          
             state.status = FETCH_STATUS_FULFILLED
-            state.data = payload.data
+            state.data =  payload.data
         }).addCase(addUserFriend.rejected, (state, action) => {
+            console.log(action, "rejected-action")
             state.status = FETCH_STATUS_REJECTED
             if (action.payload) {
                 state.error = action.payload

@@ -1,0 +1,34 @@
+﻿import { useSelector, useDispatch } from 'react-redux'
+import { addUserFriend } from '../../app/UserFriend/userFriendSlice'
+import { FETCH_STATUS_PENDING } from '../../utils/Constants'
+import { Spinner } from '../spinner/Spinner'
+export function AddFriendRow({ data, curUserId }) {
+
+    const dispatch = useDispatch();
+    const userFriend = useSelector(state => state.userFriend)
+
+    const AddFriend = (userId, friendUserId) => {
+        dispatch(addUserFriend({ userId, friendUserId }))
+    }
+
+
+    return (
+        <tr>
+            <td>{data.userId}</td>
+            <td className="text-capitalize">{data.name}</td>
+            <td>{data.gender === 0 ? "Unknown" : data.gender === 1 ? "Male" : "Femail"}</td>
+            <td>{data.province}</td>
+            <td>{data.city}</td>
+            <td>
+                <div className="d-flex justify-content align-items-center">
+                <button type="button" className="btn btn-outline-light text-dark border" onClick={_ => AddFriend(curUserId, data.userId)}>
+                    Add Friend
+                </button>
+                <div className={"d-inline mx-1 " + (userFriend.status === FETCH_STATUS_PENDING && userFriend.individualStatus[`${curUserId}_${data.userId}`] === FETCH_STATUS_PENDING ? "visible" : "invisible") }>
+                    <Spinner />                
+                    </div>
+                </div>
+            </td>
+        </tr>
+    )
+}

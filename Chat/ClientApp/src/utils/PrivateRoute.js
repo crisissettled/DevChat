@@ -22,7 +22,7 @@ export function PrivateRoute({ children, redirectPath = '/signin' }) {
         }
         setRefreshStage(2)
     }
-    console.log(userState.isSignedIn, refreshStage,"userState.isSignedIn,refreshStage")
+    //console.log(userState.isSignedIn, refreshStage,"userState.isSignedIn,refreshStage")
 
     if (userState.isSignedIn === false) {
         if (refreshStage === 1) return;

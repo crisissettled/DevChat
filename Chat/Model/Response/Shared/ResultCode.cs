@@ -8,6 +8,7 @@ namespace Chat.Model.Response.Shared {
         UserFriendExisted = 4003,
         UserFriendNotFound = 4004,
         ValidationFailed = 4005,
+        BadDataRequest = 4006,
         UnAutherized = 4010,
         NoDataFound = 4999,
         Error = 5000
@@ -31,6 +32,8 @@ namespace Chat.Model.Response.Shared {
                     return "User-Friend relation Not found";
                 case ResultCode.ValidationFailed:
                     return "Validation failed";
+                case ResultCode.BadDataRequest:
+                    return "BadDataRequest";
                 case ResultCode.UnAutherized:
                     return "UnAuthrized";
                 case ResultCode.NoDataFound:
