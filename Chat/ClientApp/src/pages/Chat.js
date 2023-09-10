@@ -1,8 +1,9 @@
 ﻿import React, { useState, useEffect } from 'react'
 import { HubConnectionBuilder, HttpTransportType, HubConnectionState, LogLevel } from '@microsoft/signalr';
 import { useSelector, useDispatch } from 'react-redux'
-import { getUserFriends } from '../app/UserFriend/userFriendSlice'
+import { Link } from 'react-router-dom';
 
+import { getUserFriends } from '../app/UserFriend/userFriendSlice'
 import { FETCH_STATUS_PENDING, FriendStatus, FriendStatusKey, MenuTabs } from '../utils/Constants'
 import { FriendInfoRow } from '../components/friend/FriendInfoRow';
 export function Chat() {
@@ -81,6 +82,8 @@ export function Chat() {
         }
     }
 
+
+
     return (
         <>
             <h1>{conStatus}</h1>
@@ -132,6 +135,10 @@ export function Chat() {
                         </ul>
                     </div>
                     <div className="w-100 p-2 border rounded-bottom" style={{ minHeight: 300 }}>
+                        {
+                            userFriends.data?.length === 0 && (<div className="my-5 text-center">No friends yet? <Link to="/findfriend" replace>Find a Friend</Link> to chat</div>)
+                        }
+
                         {
 
                             friendMenuTab === MenuTabs.Tab1 && userFriends.data?.filter(e => e.friendStatus === FriendStatusKey.Accepted)?.map(e => (
