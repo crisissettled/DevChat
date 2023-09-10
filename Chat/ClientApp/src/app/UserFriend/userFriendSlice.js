@@ -22,13 +22,13 @@ export const addUserFriend = createAsyncThunk(
 
 export const getUserFriends = createAsyncThunk(
     getUserFriendsEndpoint,
-    async (userId) => {    
+    async ({ userId, Blocked = null }) => {    
         let response = await fetch(getUserFriendsEndpoint, {
             method: 'PUT',
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify({userId})
+            body: JSON.stringify({ userId, Blocked })
         })
         return response.json();
     }
@@ -48,12 +48,14 @@ const userFriendSlice = createSlice({
             let userIdAndFriendId = `${meta.arg.userId}_${meta.arg.friendUserId}`;
             state.individualStatus[userIdAndFriendId] = FETCH_STATUS_PENDING
             state.status = FETCH_STATUS_PENDING
+
         }).addCase(addUserFriend.fulfilled, (state, { payload,meta}) => {
             let userIdAndFriendId = `${meta.arg.userId}_${meta.arg.friendUserId}`;
             state.individualStatus[userIdAndFriendId] = FETCH_STATUS_FULFILLED
             console.log(payload, "getUserFriends.fulfilled")
             state.status = FETCH_STATUS_FULFILLED
-            state.data =  payload.data
+            state.data = payload.data
+
         }).addCase(addUserFriend.rejected, (state, action) => {
             console.log(action, "rejected-action")
             state.status = FETCH_STATUS_REJECTED
@@ -62,11 +64,14 @@ const userFriendSlice = createSlice({
             } else {
                 state.error = action.error
             }
+
         }).addCase(getUserFriends.pending, (state) => {            
             state.status = FETCH_STATUS_PENDING
+
         }).addCase(getUserFriends.fulfilled, (state, action) => {           
             state.status = FETCH_STATUS_FULFILLED
             state.data = action.payload.data
+
         }).addCase(getUserFriends.rejected, (state, action) => {       
             state.status = FETCH_STATUS_REJECTED
             if (action.payload) {
