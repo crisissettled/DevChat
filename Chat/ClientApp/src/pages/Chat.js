@@ -2,9 +2,11 @@
 import { HubConnectionBuilder, HttpTransportType, HubConnectionState, LogLevel } from '@microsoft/signalr';
 import { useSelector, useDispatch } from 'react-redux'
 import { Link } from 'react-router-dom';
+import { GoCheckCircleFill } from 'react-icons/go'
 
 import { getUserFriends } from '../app/UserFriend/userFriendSlice'
-import { FETCH_STATUS_PENDING, FriendStatus, FriendStatusKey, MenuTabs } from '../utils/Constants'
+import { doSignIn } from '../app/User/userSlice';
+import { FriendStatusKey, MenuTabs } from '../utils/Constants'
 import { FriendInfoRow } from '../components/friend/FriendInfoRow';
 import { AddFriendButtons } from '../components/friend/AddFriendButtons';
 export function Chat() {
@@ -12,21 +14,36 @@ export function Chat() {
     const userFriends = useSelector(state => state.userFriend)
     const loggedInUser = useSelector(state => state.user)
 
-    const [friendMenuTab, setfriendMenuTab] = useState(MenuTabs.Tab1);
+    const [friendMenuTab, setfriendMenuTab] = useState(MenuTabs.Tab1)
+    const [friendUserId, setFriendUserId] = useState(null)
 
-    const [connection, setConnection] = useState(null);
-    const [conStatus, setConStatus] = useState("");
-    const [user, setUser] = useState(null);
-    const [messageOut, setMessageOut] = useState(null);
-    const [msgArrIn, setMsgArrIn] = useState([]);
+    const [hubConnection, sethubConnection] = useState(null);
+    const [hubConnectionState, setHubConnectionState] = useState(null);
+    const [messageToSend, setMessageToSend] = useState(null);
+    const [messageHistoryArr, setMessageHistoryArr] = useState([]);
 
-    const signInState = useSelector((state) => state.signin)
     const hubChatEndPoint = '/hubs/chat'
 
     useEffect(() => {
         const con = new HubConnectionBuilder()
             .withUrl(`${hubChatEndPoint}`, {
-                accessTokenFactory: () => signInState?.token,
+                accessTokenFactory: () => {
+                    return fetch('/api/User/RefreshSignIn', {
+                            method: "PUT",
+                            credentials: "same-origin"
+                        })
+                        .then(res => res.json())
+                        .then(json => json?.data)
+                        .then(data => data?.token)
+
+                    //if (response.status !== 401) {
+                    //    var signInState = await ;
+                    //    dispatch(doSignIn({ signedIn: true, token: signInState?.data, userId: signInState?.data.userId }))
+                    //}
+
+                    //return loggedInUser?.token;
+
+                },
                 skipNegotiation: true,
                 transport: HttpTransportType.WebSockets
             })
@@ -34,96 +51,105 @@ export function Chat() {
             .withAutomaticReconnect()
             .build();
 
-        setConnection(con);
-        setConStatus("init signalr connection...");
-
+        sethubConnection(con);
 
         dispatch(getUserFriends({ userId: loggedInUser.userId, Blocked: false })) // get current Logged In user's friend
 
+        /* return () => { con.stop() }*/
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
-        if (connection) {
-            connection.start()
+        if (hubConnection) {
+            setHubConnectionState(hubConnection.state);
+            hubConnection.start()
                 .then(_ => {
-                    console.log("signalr hub connected")
-                    setConStatus('Connected!');
-                    connection.on('ReceiveMessage', (user, message) => {
-                        console.log(user, message, "------------->ReceiveMessage");
-                        setMsgArrIn(prev => [...prev, { user, message }]);
+                    setHubConnectionState(hubConnection.state);
+                    console.log("signalr hub connected", hubConnection?.state)
+                    hubConnection.on('ReceiveMessage', (friendUserId, message) => {
+                        setMessageHistoryArr(prev => [...prev, { friendUserId, message }]);
                     });
                 })
                 .catch(e => {
-                    setConStatus(`Connection failed`)
+                    setHubConnectionState(hubConnection.state);
                     console.log("signalr error---------->", e)
                 });
         }
-    }, [connection]);
+    }, [hubConnection]);
 
-    const setUpUser = (e) => {
-        setUser(e.target.value);
-        localStorage.setItem("user", JSON.stringify(e.target.value));
-    }
+
 
     const sendMessage = _ => {
-        console.log(user, messageOut, "user - messageout")
-        if (messageOut === null || user === null) return;
-        connection.invoke("SendMessage", user, messageOut).then(res => {
+        console.log(friendUserId, messageToSend, "friendUserId - messageout")
+        if (messageToSend === null || friendUserId === null) return;
+        hubConnection.invoke("SendMessage", friendUserId, messageToSend).then(res => {
             console.log(res, "signalR SendMessage response");
-            setMessageOut(null);
+            setMessageToSend(null);
         }).catch(function (err) {
             console.error(err.toString(), "signalr error");
         });
     }
 
-    const sendMessageOnEnter = (e) => {
-        if (e.charCode === 13) {
-            sendMessage();
-        }
-    }
-
-
+    /*    console.log(!messageToSend, friendUserId)*/
 
     return (
         <>
-            <h1>{conStatus}</h1>
-            <input onChange={e => setUpUser(e)} placeholder="enter user name" value={user === null ? "" : user}></input>
+
+            {!!hubConnection &&
+                (
+                    <div>
+                        {(hubConnectionState === HubConnectionState.Connecting || hubConnectionState === HubConnectionState.Reconnecting) && "Connecting..."}
+                        {hubConnectionState === HubConnectionState.Connected && <div title="online"><GoCheckCircleFill style={{ color: 'green', fontSize: '15' }} /> </div>}
+                        {hubConnectionState === HubConnectionState.Disconnected && <div title="offline"><GoCheckCircleFill /></div>}
+                    </div>
+                )
+            }
 
             <div className="row v-75" >
-                <div className="col-8 border">
-                    <div className='border my-2' style={{ minHeight: 300 }}>
-                        {msgArrIn.map((msg, index) =>
-                            <pre key={index}>
-                                {msg.user === user ?
-                                    <div>
-                                        <div className="rightMsg">
-                                            <div className="messageUserLine">{msg.user} (YOU)</div>
-                                        </div>
-                                        <div className="rightMsg">
-                                            <div>{msg.message}</div>
-                                        </div>
-                                    </div>
-                                    :
-                                    <div style={{ textAlign: 'left' }}>
-                                        <div className="messageUserLine2">{msg.user}</div>
-                                        <div>{msg.message}</div>
-                                    </div>
-                                }
-
-                            </pre>
+                {
+                    !!friendUserId === true ?
+                        (
+                            <div className="col-8 border">
+                                <div><h4>{friendUserId}</h4></div>
+                                <div className='border my-2' style={{ minHeight: 300 }}>
+                                    {messageHistoryArr.map((message, index) =>
+                                        <pre key={index}>
+                                            {message.user === loggedInUser.userId ?
+                                                (
+                                                    <div>
+                                                        <div className="rightMsg">
+                                                            <div className="messageUserLine">{message.user} (YOU)</div>
+                                                        </div>
+                                                        <div className="rightMsg">
+                                                            <div>{message.message}</div>
+                                                        </div>
+                                                    </div>
+                                                )
+                                                :
+                                                (
+                                                    <div style={{ textAlign: 'left' }}>
+                                                        <div className="messageUserLine2">{message.user}</div>
+                                                        <div>{message.message}</div>
+                                                    </div>
+                                                )
+                                            }
+                                        </pre>
+                                    )
+                                    }
+                                </div>
+                                <p>
+                                    <textarea placeholder="Enter message"
+                                        className="rounded w-100" style={{ minHeight: 120 }}
+                                        onChange={e => setMessageToSend(e.target.value)}
+                                        value={messageToSend === null ? "" : messageToSend}
+                                    />
+                                </p>
+                                <p><button disabled={friendUserId === null || !!messageToSend === false || hubConnectionState !== HubConnectionState.Connected} onClick={sendMessage}>Send</button></p>
+                            </div>
+                        ) : (
+                            <div className="col-8 my-6"><h5>Select a friend to chat</h5></div>
                         )
-                        }
-                    </div>
-                    <p>
-                        <textarea placeholder="Enter message"
-                            className="rounded w-100" style={{ minHeight: 120 }}
-                            onChange={e => setMessageOut(e.target.value)}
-                            value={messageOut === null ? "" : messageOut}
-                            onKeyPress={sendMessageOnEnter} />
-                    </p>
-                    <p><button disabled={user === null || conStatus === ""} onClick={sendMessage} className='SendBtn'>Send</button></p>
-                </div>
+                }
                 <div className="col-4 ">
                     <div className="bg-info  rounded-top">
                         <ul className="nav d-flex justify-content-evenly">
@@ -144,7 +170,7 @@ export function Chat() {
 
                             friendMenuTab === MenuTabs.Tab1 && userFriends.data?.filter(e => e.friendStatus === FriendStatusKey.Accepted)?.map(e => (
                                 <div key={e.friendUserId} className="border-bottom py-2">
-                                    <FriendInfoRow item={e} />
+                                    <FriendInfoRow {...e} allowChat={true} setFriendUserIdToChat={setFriendUserId} />
                                 </div>
                             ))
 
@@ -152,7 +178,7 @@ export function Chat() {
                         {
                             friendMenuTab === MenuTabs.Tab2 && userFriends.data?.filter(e => e.friendStatus === FriendStatusKey.Requested)?.map(e => (
                                 <div key={e.friendUserId} className="border-bottom py-1">
-                                    <FriendInfoRow item={e} />
+                                    <FriendInfoRow {...e} />
                                     <AddFriendButtons {...e} />
                                 </div>
                             ))
