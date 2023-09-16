@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom';
 import { getUserFriends } from '../app/UserFriend/userFriendSlice'
 import { FETCH_STATUS_PENDING, FriendStatus, FriendStatusKey, MenuTabs } from '../utils/Constants'
 import { FriendInfoRow } from '../components/friend/FriendInfoRow';
+import { AddFriendButtons } from '../components/friend/AddFriendButtons';
 export function Chat() {
     const dispatch = useDispatch();
     const userFriends = useSelector(state => state.userFriend)
@@ -142,7 +143,7 @@ export function Chat() {
                         {
 
                             friendMenuTab === MenuTabs.Tab1 && userFriends.data?.filter(e => e.friendStatus === FriendStatusKey.Accepted)?.map(e => (
-                                <div key={e.friendId} className="border-bottom py-2">
+                                <div key={e.friendUserId} className="border-bottom py-2">
                                     <FriendInfoRow item={e} />
                                 </div>
                             ))
@@ -150,9 +151,9 @@ export function Chat() {
                         }
                         {
                             friendMenuTab === MenuTabs.Tab2 && userFriends.data?.filter(e => e.friendStatus === FriendStatusKey.Requested)?.map(e => (
-                                <div key={e.friendId} className="border-bottom py-1">
+                                <div key={e.friendUserId} className="border-bottom py-1">
                                     <FriendInfoRow item={e} />
-                                    <div><button className="me-1 border-0 rounded text-muted">Accept</button><button className="ms-1 border-0 rounded text-muted">Deny</button></div>
+                                    <AddFriendButtons {...e} />
                                 </div>
                             ))
                         }

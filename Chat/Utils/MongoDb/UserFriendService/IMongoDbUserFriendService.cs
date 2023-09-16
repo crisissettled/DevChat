@@ -6,6 +6,8 @@ namespace Chat.Utils.MongoDb.UserFirendService {
 
         Task AddUserFriend(UserFriend userFriend);
 
-        Task UpdateUserFriendMessage(string UserId, string FriendId, UserFriendMessage Message, UserFriendMessageType MessageType);
+        Task UpdateUserFriendMessage(string UserId, string FriendUserId, UserFriendMessage Message, UserFriendMessageType MessageType);
+
+        Task AcceptOrDenyFriend(string UserId, string FriendUserId, FriendRequestStatus friendRequestStatus);
     }
 }

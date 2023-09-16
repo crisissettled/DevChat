@@ -11,7 +11,7 @@ export function AddFriendRow({ data, curUserId }) {
         dispatch(addUserFriend({ userId, friendUserId }))
     }
 
-    let friend = userFriend?.data?.find(e => e?.friendId === data.userId)
+    let friend = userFriend?.data?.find(e => e?.friendUserId === data.userId)
     let spinnerVisibilityClass = userFriend.status === FETCH_STATUS_PENDING && userFriend.individualStatus[`${curUserId}_${data.userId}`] === FETCH_STATUS_PENDING ? "visible" : "invisible"
 
 

@@ -1,4 +1,4 @@
 ﻿export function FriendInfoRow({ item }) {
-    console.log(item, item.friendId)
-    return (<div className="w-75"> {item.friendId} - {item.friendName} </div>)
+    console.log(item, item.friendUserId)
+    return (<div className="w-75"> {item.friendUserId} - {item.friendName} </div>)
 }

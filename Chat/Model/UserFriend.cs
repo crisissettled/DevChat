@@ -18,7 +18,7 @@ namespace Chat.Model {
         public DateTime AcceptOrDeniedAt { get; set; }
         public List<UserFriendMessage> MessageIn { get; set; } = new List<UserFriendMessage>();
         public List<UserFriendMessage> MessageOut { get; set; } = new List<UserFriendMessage>();
-        public bool? Blocked { get; set; } = null;
+        public bool? Blocked { get; set; } = false;
 
         public UserFriend(string userId, string friendUserId) {
             UserId = userId;

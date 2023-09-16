@@ -7,6 +7,7 @@ using Chat.Utils.MongoDb.UserFirendService;
 using Chat.Utils.MongoDb.UserService;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 
 namespace Chat.Controllers {
 
@@ -62,7 +63,7 @@ namespace Chat.Controllers {
                     return BadRequestResult(ResultCode.UserFriendExisted);
                 }
 
-                //verify UserId, FriendId are valid
+                //verify UserId, FriendUserId are valid
                 var fromUser = _mongoDbUserService.GetUserAsync(addUserFriendRequest.UserId);
                 var toUser = _mongoDbUserService.GetUserAsync(addUserFriendRequest.FriendUserId);
 
@@ -115,9 +116,32 @@ namespace Chat.Controllers {
 
         }
 
+        [HttpPut]
+        public async Task<ActionResult> AcceptOrDenyFriend(
+            AcceptOrDenyFriendRequest acceptOrDenyFriendRequest,
+            [FromServices] IValidator<AcceptOrDenyFriendRequest> validator) {
+            var resultValidate = await validator.ValidateAsync(acceptOrDenyFriendRequest);
+            if (!resultValidate.IsValid) {
+                return ValidationResult(resultValidate);
+            }
+
+            await _mongoDbUserFriendService.AcceptOrDenyFriend(
+                acceptOrDenyFriendRequest.UserId,
+                acceptOrDenyFriendRequest.FriendUserId,
+                acceptOrDenyFriendRequest.AcceptOrDeny
+                );
+
+            var userFriendResponseList = await GetUserFriend(acceptOrDenyFriendRequest.UserId);
+            var result = new ResponseResult(ResultCode.Success) {
+                data = userFriendResponseList
+            };
+
+            return Ok(result);
+        }
 
 
-        private async Task<List<UserFriendResponse>> GetUserFriend(string UserId, bool? Blocked) {
+
+        private async Task<List<UserFriendResponse>> GetUserFriend(string UserId, bool? Blocked = null) {
 
             var userFriendResponseList = new List<UserFriendResponse>();
 
@@ -128,15 +152,15 @@ namespace Chat.Controllers {
 
 
             foreach (var userFriend in userFriendList) {
-                if (Blocked != null && userFriend.Blocked != Blocked) continue; // check blocked status with user request
+                if (Blocked != null && userFriend.Blocked != null && userFriend.Blocked != Blocked) continue; // check blocked status with user request
 
-                var user = await _mongoDbUserService.GetUserAsync(userFriend.FriendUserId);
+                var user = await _mongoDbUserService.GetUserAsync(UserId == userFriend.FriendUserId ? userFriend.UserId : userFriend.FriendUserId);
                 if (user != null) {
                     userFriendResponseList.Add(new UserFriendResponse(user.UserId, user.Name, user.Gender, userFriend.FriendStatus, userFriend.Blocked));
                 }
             }
 
-            return userFriendResponseList;          
+            return userFriendResponseList;
         }
     }
 }

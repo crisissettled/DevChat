@@ -1,6 +1,6 @@
 ﻿namespace Chat.Model.Response {
     public class UserFriendResponse {
-        public string FriendId { get; set; }
+        public string FriendUserId { get; set; }
         public string FriendName { get; set;}
         public Gender Gender { get; set;}
 
@@ -8,8 +8,8 @@
 
         public bool? Blocked { get; set; } = null;
 
-        public UserFriendResponse(string friendId, string friendName, Gender gender, FriendRequestStatus friendStatus,bool? Blocked) {
-            FriendId = friendId;
+        public UserFriendResponse(string friendUserId, string friendName, Gender gender, FriendRequestStatus friendStatus,bool? Blocked) {
+            FriendUserId = friendUserId;
             FriendName = friendName;
             Gender = gender;
             FriendStatus = friendStatus;    

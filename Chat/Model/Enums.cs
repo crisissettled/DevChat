@@ -17,6 +17,6 @@
 
     public enum UserFriendMessageType {
         Send, // the one who request adding friend [UserId]
-        Reply // the one who receive adding friend message [FriendId]
+        Reply // the one who receive adding friend message [FriendUserId]
     }
 }
