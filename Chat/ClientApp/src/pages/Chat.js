@@ -3,12 +3,14 @@ import { HubConnectionBuilder, HttpTransportType, HubConnectionState, LogLevel }
 import { useSelector, useDispatch } from 'react-redux'
 import { Link } from 'react-router-dom';
 
-
 import { updateHubConnectionState } from '../app/User/userSlice'
 import { getUserFriends } from '../app/UserFriend/userFriendSlice'
 import { FriendStatusKey, MenuTabs } from '../utils/Constants'
 import { FriendInfoRow } from '../components/friend/FriendInfoRow';
 import { AddFriendButtons } from '../components/friend/AddFriendButtons';
+
+import styles from './chat.module.css'
+
 export function Chat() {
     const dispatch = useDispatch();
     const userFriends = useSelector(state => state.userFriend)
@@ -118,10 +120,10 @@ export function Chat() {
                     <div className="d-flex align-items-center">
                         <span className="text-capitalize fs-5">{!!friendUserId === true ? friendUserId : "select a friend to chat"}</span>
                     </div>
-                    <div className='my-2' style={{ height: 300, overflowY: 'scroll' }} ref={chatBox}>
+                    <div className={styles.chatbox} style={{ height: 300, overflowY: 'scroll' }} ref={chatBox}>
                         {
                             messageHistory[friendUserId]?.map((item, index) =>
-                                <pre key={index} className="my-1">
+                                <pre key={index} className="m-1">
                                     {item.user === loggedInUser.userId ?
                                         (
                                             <div className="my-2" style={{ textAlign: 'right' }}>

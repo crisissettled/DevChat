@@ -1,0 +1,15 @@
+﻿.chatbox {
+    height: 300px;
+    overflow-y: scroll; /* Add the ability to scroll */
+}
+
+    /* Hide scrollbar for Chrome, Safari and Opera */
+    .chatbox::-webkit-scrollbar {
+        display: none;
+    }
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.chatbox {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+}
