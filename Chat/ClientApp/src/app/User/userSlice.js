@@ -5,7 +5,8 @@ export const userSlice = createSlice({
     initialState: {
         isSignedIn: false,
         token: "",
-        userId:"",
+        userId: "",
+        hubConnectionState:"",
         info: {
             "userId": "",
             "name": "",
@@ -36,11 +37,15 @@ export const userSlice = createSlice({
             state.isSignedIn = false;
             state.token = "";
             state.userId = "";
+        },
+        updateHubConnectionState(state, { payload }) {
+            state.hubConnectionState = payload?.connectionState
         }
+
     },
 })
 
 // Action creators are generated for each case reducer function
-export const { doSignIn, doSignOut } = userSlice.actions
+export const { doSignIn, doSignOut, updateHubConnectionState } = userSlice.actions
 
 export default userSlice.reducer

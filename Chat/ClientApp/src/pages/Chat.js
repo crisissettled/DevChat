@@ -2,8 +2,9 @@
 import { HubConnectionBuilder, HttpTransportType, HubConnectionState, LogLevel } from '@microsoft/signalr';
 import { useSelector, useDispatch } from 'react-redux'
 import { Link } from 'react-router-dom';
-import { GoCheckCircleFill } from 'react-icons/go'
 
+
+import { updateHubConnectionState } from '../app/User/userSlice'
 import { getUserFriends } from '../app/UserFriend/userFriendSlice'
 import { FriendStatusKey, MenuTabs } from '../utils/Constants'
 import { FriendInfoRow } from '../components/friend/FriendInfoRow';
@@ -17,7 +18,6 @@ export function Chat() {
     const [friendUserId, setFriendUserId] = useState(null)
 
     const [hubConnection, sethubConnection] = useState(null);
-    const [hubConnectionState, setHubConnectionState] = useState(null);
     const [messageToSend, setMessageToSend] = useState(null);
     const [messageHistory, setMessageHistory] = useState({});
 
@@ -62,10 +62,10 @@ export function Chat() {
 
     useEffect(() => {
         if (hubConnection) {
-            setHubConnectionState(hubConnection.state);
+            dispatch(updateHubConnectionState({ connectionState: hubConnection.state }))
             hubConnection.start()
                 .then(_ => {
-                    setHubConnectionState(hubConnection.state);
+                    dispatch(updateHubConnectionState({ connectionState: hubConnection.state }))
                     //console.log("signalr hub connected", hubConnection?.state)
                     hubConnection.on('ReceiveMessage', (fromUserId, message) => {
                         //console.log(messageHistory, fromUserId, message, 'messageHistory in ReceiveMessage, fromUserId, message,')
@@ -77,7 +77,7 @@ export function Chat() {
                     });
                 })
                 .catch(e => {
-                    setHubConnectionState(hubConnection.state);
+                    dispatch(updateHubConnectionState({ connectionState: hubConnection.state }))
                     //console.log("-----signalr error-----", e)
                 });
         }
@@ -85,8 +85,7 @@ export function Chat() {
     }, [hubConnection]);
 
     useEffect(() => {
-        console.log("scroll", chatBox?.current?.scrollTop, chatBox?.current?.scrollHeight)
-        chatBox?.current?.scrollIntoView({ behavior: 'smooth', block: "end" })
+        chatBox?.current?.lastElementChild?.scrollIntoView({ behavior: 'smooth' })
     }, [messageHistory])
 
     const handleSendMessage = _ => {
@@ -110,37 +109,24 @@ export function Chat() {
             handleSendMessage()
         }
     }
-
-    
-
     //console.log(messageHistory, messageHistory[friendUserId], friendUserId, "messageHistory ,messageHistory[friendUserId], friendUserId at bottom")
 
     return (
         <>
-
-            {
-                !!hubConnection &&
-                (
-                    <div>
-                        {(hubConnectionState === HubConnectionState.Connecting || hubConnectionState === HubConnectionState.Reconnecting) && "Connecting..."}
-                        {hubConnectionState === HubConnectionState.Connected && <div title="online"><GoCheckCircleFill style={{ color: 'green', fontSize: '15' }} /> </div>}
-                        {hubConnectionState === HubConnectionState.Disconnected && <div title="offline"><GoCheckCircleFill /></div>}
-                    </div>
-                )
-            }
-
-            <div className="row v-75" > {/*left section*/}
+            <div className="row" > {/*left section*/}
                 <div className="col-8 border">
-                    <div><h3 className="text-capitalize">{!!friendUserId === true ? friendUserId : "select a friend to chat"}</h3></div>
+                    <div className="d-flex align-items-center">
+                        <span className="text-capitalize fs-5">{!!friendUserId === true ? friendUserId : "select a friend to chat"}</span>
+                    </div>
                     <div className='my-2' style={{ height: 300, overflowY: 'scroll' }} ref={chatBox}>
                         {
                             messageHistory[friendUserId]?.map((item, index) =>
                                 <pre key={index} className="my-1">
                                     {item.user === loggedInUser.userId ?
                                         (
-                                            <div className="my-2">
-                                                <div className="text-capitalize me-1" style={{ direction: 'rtl' }} >{item.user} (YOU)</div>
-                                                <div style={{ direction: 'rtl' }} > <span className="p-2 rounded d-inline-block" style={{ backgroundColor: "#cbf3f3" }}>{item.message}</span></div>
+                                            <div className="my-2" style={{ textAlign: 'right' }}>
+                                                <div className="text-capitalize me-1">{item.user} (YOU)</div>
+                                                <div> <span className="p-2 rounded d-inline-block" style={{ backgroundColor: "#cbf3f3" }}>{item.message}</span></div>
                                             </div>
                                         )
                                         :
@@ -154,17 +140,25 @@ export function Chat() {
                                 </pre>
                             )
                         }
-                    </div> 
+                    </div>
                     <p>
                         <textarea placeholder="Enter message"
                             disabled={!friendUserId}
-                            className="rounded w-100" style={{ minHeight: 120 }}
+                            className="rounded w-100" style={{ minHeight: 100 }}
                             onChange={e => setMessageToSend(e.target.value)}
                             value={messageToSend === null ? "" : messageToSend}
                             onKeyDown={e => handleEnterKeyStroke(e)}
                         />
                     </p>
-                    <p className="text-center"><button type='button' className="btn btn-primary btn-block w-100" disabled={friendUserId === null || !!messageToSend === false || hubConnectionState !== HubConnectionState.Connected} onClick={handleSendMessage}>Send</button></p>
+                    <p className="text-center">
+                        <button type='button'
+                            className="btn btn-primary btn-block w-100"
+                            disabled={friendUserId === null ||
+                                !!messageToSend === false ||
+                                loggedInUser?.hubConnectionState !== HubConnectionState.Connected
+                            }
+                            onClick={handleSendMessage}>Send</button>
+                    </p>
                 </div>
                 <div className="col-4"> {/*rigth section*/}
                     <div className="bg-info  rounded-top">
