@@ -1,11 +1,10 @@
-﻿import React, { useState, useEffect } from 'react'
+﻿import React, { useState, useEffect, useRef } from 'react'
 import { HubConnectionBuilder, HttpTransportType, HubConnectionState, LogLevel } from '@microsoft/signalr';
 import { useSelector, useDispatch } from 'react-redux'
 import { Link } from 'react-router-dom';
 import { GoCheckCircleFill } from 'react-icons/go'
 
 import { getUserFriends } from '../app/UserFriend/userFriendSlice'
-import { doSignIn } from '../app/User/userSlice';
 import { FriendStatusKey, MenuTabs } from '../utils/Constants'
 import { FriendInfoRow } from '../components/friend/FriendInfoRow';
 import { AddFriendButtons } from '../components/friend/AddFriendButtons';
@@ -21,6 +20,8 @@ export function Chat() {
     const [hubConnectionState, setHubConnectionState] = useState(null);
     const [messageToSend, setMessageToSend] = useState(null);
     const [messageHistory, setMessageHistory] = useState({});
+
+    const chatBox = useRef(null)
 
     const hubChatEndPoint = '/hubs/chat'
 
@@ -65,47 +66,54 @@ export function Chat() {
             hubConnection.start()
                 .then(_ => {
                     setHubConnectionState(hubConnection.state);
-                    console.log("signalr hub connected", hubConnection?.state)
+                    //console.log("signalr hub connected", hubConnection?.state)
                     hubConnection.on('ReceiveMessage', (fromUserId, message) => {
-                        console.log("receive message", messageHistory, { user: fromUserId, message })
-                        const newMessageHistory = { ...messageHistory }
+                        //console.log(messageHistory, fromUserId, message, 'messageHistory in ReceiveMessage, fromUserId, message,')
 
-                        console.log("receive message -newMessageHistory", !newMessageHistory[fromUserId], fromUserId)
-                        if (!newMessageHistory[fromUserId]) newMessageHistory[fromUserId] = []
-                        newMessageHistory[fromUserId].push({ user: fromUserId, message })
-
-
-                        setMessageHistory(newMessageHistory);
+                        setMessageHistory(prev => {
+                            const currentChatMessage = !prev[fromUserId] === true ? [] : prev[fromUserId]
+                            return { ...prev, [fromUserId]: [...currentChatMessage, { user: fromUserId, message }] }
+                        });
                     });
                 })
                 .catch(e => {
                     setHubConnectionState(hubConnection.state);
-                    console.log("-----signalr error-----", e)
+                    //console.log("-----signalr error-----", e)
                 });
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [hubConnection]);
 
+    useEffect(() => {
+        console.log("scroll", chatBox?.current?.scrollTop, chatBox?.current?.scrollHeight)
+        chatBox?.current?.scrollIntoView({ behavior: 'smooth', block: "end" })
+    }, [messageHistory])
 
-
-    const sendMessage = _ => {
+    const handleSendMessage = _ => {
         console.log(friendUserId, messageToSend, "friendUserId - messageout")
         if (messageToSend === null || friendUserId === null) return;
 
         hubConnection.invoke("SendMessage", friendUserId, messageToSend).then(res => {
-            console.log(res, "signalR SendMessage response");
-            const newMessageHistory = { ...messageHistory }
-            console.log(newMessageHistory, "newMessageHistory", friendUserId)
-            if (!newMessageHistory[friendUserId]) newMessageHistory[friendUserId] = []
-            newMessageHistory[friendUserId].push({ user: loggedInUser?.userId, message: messageToSend })
-            console.log(newMessageHistory, "newMessageHistory")
-            setMessageHistory(newMessageHistory);
+            setMessageHistory(prev => {
+                const currentChatMessage = !prev[friendUserId] === true ? [] : prev[friendUserId]
+                return { ...prev, [friendUserId]: [...currentChatMessage, { user: loggedInUser.userId, message: messageToSend }] }
+            });
             setMessageToSend(null);
         }).catch(function (err) {
             console.error(err.toString(), "signalr error");
         });
     }
 
-    console.log(messageHistory, "messageHistory")
+    const handleEnterKeyStroke = (e) => {
+        if (e.shiftKey === true && e.keyCode === 13) {
+            e.preventDefault()
+            handleSendMessage()
+        }
+    }
+
+    
+
+    //console.log(messageHistory, messageHistory[friendUserId], friendUserId, "messageHistory ,messageHistory[friendUserId], friendUserId at bottom")
 
     return (
         <>
@@ -121,10 +129,10 @@ export function Chat() {
                 )
             }
 
-            <div className="row v-75" >
+            <div className="row v-75" > {/*left section*/}
                 <div className="col-8 border">
                     <div><h3 className="text-capitalize">{!!friendUserId === true ? friendUserId : "select a friend to chat"}</h3></div>
-                    <div className='my-2' style={{ minHeight: 300 }}>
+                    <div className='my-2' style={{ height: 300, overflowY: 'scroll' }} ref={chatBox}>
                         {
                             messageHistory[friendUserId]?.map((item, index) =>
                                 <pre key={index} className="my-1">
@@ -132,7 +140,7 @@ export function Chat() {
                                         (
                                             <div className="my-2">
                                                 <div className="text-capitalize me-1" style={{ direction: 'rtl' }} >{item.user} (YOU)</div>
-                                                <div style={{ direction: 'rtl' }} > <span className="p-2 rounded d-inline-block" style={{ backgroundColor: "#cbf3f3" } }>{item.message}</span></div>
+                                                <div style={{ direction: 'rtl' }} > <span className="p-2 rounded d-inline-block" style={{ backgroundColor: "#cbf3f3" }}>{item.message}</span></div>
                                             </div>
                                         )
                                         :
@@ -146,18 +154,19 @@ export function Chat() {
                                 </pre>
                             )
                         }
-                    </div>
+                    </div> 
                     <p>
                         <textarea placeholder="Enter message"
                             disabled={!friendUserId}
                             className="rounded w-100" style={{ minHeight: 120 }}
                             onChange={e => setMessageToSend(e.target.value)}
                             value={messageToSend === null ? "" : messageToSend}
+                            onKeyDown={e => handleEnterKeyStroke(e)}
                         />
                     </p>
-                    <p><button disabled={friendUserId === null || !!messageToSend === false || hubConnectionState !== HubConnectionState.Connected} onClick={sendMessage}>Send</button></p>
+                    <p className="text-center"><button type='button' className="btn btn-primary btn-block w-100" disabled={friendUserId === null || !!messageToSend === false || hubConnectionState !== HubConnectionState.Connected} onClick={handleSendMessage}>Send</button></p>
                 </div>
-                <div className="col-4 ">
+                <div className="col-4"> {/*rigth section*/}
                     <div className="bg-info  rounded-top">
                         <ul className="nav d-flex justify-content-evenly">
                             <li className={`${friendMenuTab === MenuTabs.Tab1 ? 'border-3 border-bottom border-success' : ''} nav-item`}>
