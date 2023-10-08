@@ -2,11 +2,14 @@
 using Chat.Model.Request;
 using Chat.Model.Response;
 using Chat.Model.Response.Shared;
+using Chat.signalR;
 using Chat.Utils;
 using Chat.Utils.MongoDb.UserFirendService;
 using Chat.Utils.MongoDb.UserService;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Caching.Memory;
 using System.ComponentModel.DataAnnotations;
 
 namespace Chat.Controllers {
@@ -16,14 +19,22 @@ namespace Chat.Controllers {
         private readonly bool IsDevelopment;
         private readonly IMongoDbUserFriendService _mongoDbUserFriendService;
         private readonly IMongoDbUserService _mongoDbUserService;
+        private readonly IHubContext<ChatHub> _hubContext;
+        private readonly IChatSessions _chatSessions;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
         public UserFriendController(IHostEnvironment env,
             IMongoDbUserFriendService mongoDbUserFriendService,
-            IMongoDbUserService mongoDbUserService
-            ) : base(env) {
+            IMongoDbUserService mongoDbUserService,
+            IHubContext<ChatHub> hubContext,
+            IChatSessions chatSessions,
+            IHttpContextAccessor httpContextAccessor) : base(env) {
             IsDevelopment = env.IsDevelopment();
             _mongoDbUserFriendService = mongoDbUserFriendService;
             _mongoDbUserService = mongoDbUserService;
+            _hubContext = hubContext;
+            _chatSessions = chatSessions;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         [HttpPut]
@@ -83,6 +94,14 @@ namespace Chat.Controllers {
                     data = userFriendResponseList
                 };
 
+
+                var connectionId = _chatSessions.getConnectionId(addUserFriendRequest.FriendUserId);
+              
+                if(connectionId != null) {               
+                    await _hubContext.Clients.Client(connectionId).SendAsync("FriendRequestNotification", "Friend Request Notification");
+                }
+
+
                 return Ok(result);
 
             } catch (Exception ex) {
@@ -136,6 +155,12 @@ namespace Chat.Controllers {
                 data = userFriendResponseList
             };
 
+            var connectionId = _chatSessions.getConnectionId(acceptOrDenyFriendRequest.FriendUserId);
+
+            if (connectionId != null) {
+                await _hubContext.Clients.Client(connectionId).SendAsync("FriendRequestAcceptOrDenyNotification", $"Friend Request {acceptOrDenyFriendRequest.AcceptOrDeny}");
+            }
+
             return Ok(result);
         }
 
@@ -156,7 +181,7 @@ namespace Chat.Controllers {
 
                 var user = await _mongoDbUserService.GetUserAsync(UserId == userFriend.FriendUserId ? userFriend.UserId : userFriend.FriendUserId);
                 if (user != null) {
-                    userFriendResponseList.Add(new UserFriendResponse(user.UserId, user.Name, user.Gender, userFriend.FriendStatus, userFriend.Blocked));
+                    userFriendResponseList.Add(new UserFriendResponse(user.UserId, user.Name, userFriend.FriendUserId, user.Gender, userFriend.FriendStatus, userFriend.Blocked));
                 }
             }
 

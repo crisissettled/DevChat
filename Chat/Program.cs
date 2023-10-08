@@ -52,6 +52,7 @@ builder.Services.AddAuthentication(options => {
        });
 
 builder.Services.AddSingleton<ICrypto, Crypto>();
+builder.Services.AddSingleton<IChatSessions, ChatSessions>();
 
 builder.Services.AddMongoDbServices();
 builder.Services.AddFluentValidators();

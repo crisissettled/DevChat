@@ -1,35 +1,37 @@
-﻿using Chat.Utils;
+﻿using Chat.Model;
+using Chat.Utils;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace Chat.signalR {
     public class ChatHub : Hub<IChatClient> {
 
-        private readonly IMemoryCache _memoryCache;
-        public ChatHub(IMemoryCache memoryCache) {
-            _memoryCache = memoryCache;
+        private readonly IChatSessions _chatSessions;
+        public ChatHub( IChatSessions chatSessions) {      
+            _chatSessions = chatSessions;
         }
 
         public override Task OnConnectedAsync() {
             var UserId = this.Context.UserIdentifier;
-            if (UserId != null) {
-                _memoryCache.Set<string>(this.Context.ConnectionId, UserId);
+            if (UserId != null) {        
+                _chatSessions.AddSession(this.Context.ConnectionId, UserId);
             }
 
             return base.OnConnectedAsync();
         }
-        public Task SendMessage(string toUserId, string message) {
-            if (_memoryCache.TryGetValue(this.Context.ConnectionId, out string? fromUserId) == false) {
-                Console.WriteLine("From user is not existing in cache");
+        public Task SendMessage(string toUserId, string message) {          
+            if(string.IsNullOrWhiteSpace(this.Context.UserIdentifier)) return Task.CompletedTask;
+            
+            try {
+                return this.Clients.Users(toUserId).ReceiveMessage(this.Context.UserIdentifier, message);
             }
-
-            if (fromUserId == null) return Task.CompletedTask;
-
-            return this.Clients.Users(toUserId).ReceiveMessage(fromUserId, message);
+            catch (Exception ex) {
+                return Task.FromException(ex);
+            }            
         }
 
-        public override Task OnDisconnectedAsync(Exception? exception) {
-            _memoryCache.Remove(this.Context.ConnectionId);
+        public override Task OnDisconnectedAsync(Exception? exception) {           
+            _chatSessions.RemoveSession(this.Context.ConnectionId, this.Context.UserIdentifier);
             return base.OnDisconnectedAsync(exception);
         }
     }

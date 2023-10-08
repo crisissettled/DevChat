@@ -14,10 +14,12 @@ export function AddFriendButtons(props) {
 
     let spinnerVisibility = userFriend.status === FETCH_STATUS_PENDING && userFriend.individualStatus[`${user.userId}_${props.friendUserId}`] === FETCH_STATUS_PENDING ? true : false
 
+    let friendRequestPending = props.friendRequestReceiver !== user.userId
+
     return (
         <div>
             {
-                spinnerVisibility === true ? <Spinner /> :
+                spinnerVisibility === true ? <Spinner /> : friendRequestPending === true? (<div>Waiting for Accept</div>) :
                     (
                         <div>
                             <button className="me-1 border-0 rounded text-muted" onClick={() => handleAddFriend(true)}>Accept</button>

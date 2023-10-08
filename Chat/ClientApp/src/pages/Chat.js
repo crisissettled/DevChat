@@ -77,6 +77,15 @@ export function Chat() {
                             return { ...prev, [fromUserId]: [...currentChatMessage, { user: fromUserId, message }] }
                         });
                     });
+                    hubConnection.on("FriendRequestNotification", (message) => {
+                        console.log(message)
+                        dispatch(getUserFriends({ userId: loggedInUser.userId, Blocked: false })) // get current Logged In user's friend
+                    });
+                    hubConnection.on("FriendRequestAcceptOrDenyNotification", (message) => {
+                        console.log(message)
+                        dispatch(getUserFriends({ userId: loggedInUser.userId, Blocked: false })) // get current Logged In user's friend
+                    });
+
                 })
                 .catch(e => {
                     dispatch(updateHubConnectionState({ connectionState: hubConnection.state }))
@@ -112,6 +121,8 @@ export function Chat() {
         }
     }
     //console.log(messageHistory, messageHistory[friendUserId], friendUserId, "messageHistory ,messageHistory[friendUserId], friendUserId at bottom")
+
+    const friendRequestCount = userFriends.data?.filter(e => e.friendStatus === FriendStatusKey.Requested)?.length ;
 
     return (
         <>
@@ -170,6 +181,7 @@ export function Chat() {
                             </li>
                             <li className={`${friendMenuTab === MenuTabs.Tab2 ? 'border-3 border-bottom border-success' : ''} nav-item`}>
                                 <button className="border-0 bg-info text-white fs-5" onClick={e => setfriendMenuTab(MenuTabs.Tab2)}>Friend Request</button>
+                                {friendRequestCount > 0 && <span className="badge bg-warning">{friendRequestCount}</span>}
                             </li>
                         </ul>
                     </div>
@@ -189,7 +201,7 @@ export function Chat() {
                         }
                         {
                             friendMenuTab === MenuTabs.Tab2 && userFriends.data?.filter(e => e.friendStatus === FriendStatusKey.Requested)?.map(e => (
-                                <div key={e.friendUserId} className="border-bottom py-1">
+                                <div key={e.friendUserId} className="border-bottom py-1"> 
                                     <FriendInfoRow {...e} />
                                     <AddFriendButtons {...e} />
                                 </div>
