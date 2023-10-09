@@ -2,6 +2,7 @@ using Chat.Model;
 using Chat.signalR;
 using Chat.Utils;
 using Chat.Utils.Crypto;
+using Chat.Utils.Middleware;
 using Chat.Utils.MongoDb;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -70,6 +71,8 @@ app.UseStaticFiles();
 app.UseRouting();
 
 app.MapHub<ChatHub>("/hubs/chat");
+
+app.UseMiddleware<JwtMiddleware>();
 
 app.MapControllers();
 

@@ -5,6 +5,7 @@
         //mongodb index names IDX_[Table]_[Field]
         public const string IDX_USER_UserId = "idx_user_userId";
 
+        public const string IDX_ChatMessage_FromUserId_ToUserId = "idx_fromUserId_toUserId";
 
         //session
         public const string SESSION_COOKIE_KEY = "ChatRT";

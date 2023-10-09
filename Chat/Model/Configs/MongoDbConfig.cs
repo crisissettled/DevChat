@@ -7,5 +7,6 @@
         public static string UserCollectionName = "user";
         public static string LoginStateCollectionName = "log_in_state";
         public static string UserFriendCollectionName = "userfriend";
+        public static string ChatMessageCollectionName = "chat_message";
     }
 }

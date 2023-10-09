@@ -1,4 +1,5 @@
-﻿using Microsoft.IdentityModel.Tokens;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
@@ -17,9 +18,14 @@ namespace Chat.Utils {
             };
             var key = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(AccessSecret));
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-            var jwtAccessToken = new JwtSecurityToken(Issuer, Audience, claims,
-                expires: DateTime.Now.AddSeconds(AccessExpiration), signingCredentials: credentials,
-                notBefore: DateTime.Now);
+            var jwtAccessToken = new JwtSecurityToken(
+                    Issuer,
+                    Audience,
+                    claims,
+                    expires: DateTime.Now.AddSeconds(AccessExpiration),
+                    signingCredentials: credentials,
+                    notBefore: DateTime.Now
+                );
             return new JwtSecurityTokenHandler().WriteToken(jwtAccessToken);
         }
 
@@ -29,6 +35,27 @@ namespace Chat.Utils {
             using var rng = RandomNumberGenerator.Create();
             rng.GetBytes(randomNumber);
             return $"{UserId}{Convert.ToBase64String(randomNumber)}";
+        }
+
+
+        public static string? ValidateToken(string token) {
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+
+            tokenHandler.ValidateToken(token, new TokenValidationParameters {
+                ValidateIssuerSigningKey = true,
+                ValidateAudience = true,
+                ValidateLifetime = true,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(AccessSecret)),
+                ValidIssuer = Issuer,
+                ValidAudience = Audience,
+                // set clockskew to zero so tokens expire exactly at token expiration time.
+                ClockSkew = TimeSpan.Zero
+            }, out SecurityToken validatedToken);
+
+            var jwtToken = (JwtSecurityToken)validatedToken;
+            return jwtToken.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
+
         }
     }
 }

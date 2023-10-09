@@ -4,10 +4,10 @@ using Chat.Model.Response;
 using Chat.Model.Response.Shared;
 using Chat.Utils;
 using Chat.Utils.Crypto;
+using Chat.Utils.CustomAttribute;
 using Chat.Utils.MongoDb.UserService;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
 
 
 namespace Chat.Controllers {
@@ -56,6 +56,7 @@ namespace Chat.Controllers {
         }
 
         [HttpPut]
+        [Authorize]
         public async Task<ActionResult> UpdateProfile(
             [FromServices] IValidator<UpdateProfileRequest> validator,
             [FromServices] ICrypto crypto,
@@ -152,6 +153,7 @@ namespace Chat.Controllers {
         }
 
         [HttpPut]
+        [Authorize]
         public async Task<ActionResult> SignChatOut() {
             var curRefreshToken = _httpContextAccessor.HttpContext!.Request.Cookies[Constants.SESSION_COOKIE_KEY];
             if (curRefreshToken != null) {
@@ -168,6 +170,7 @@ namespace Chat.Controllers {
 
 
         [HttpPut]
+        [Authorize]
         public async Task<ActionResult> SearchFriend(SearchFriendRequest searchFriendRequest) {
 
             var userList = await _mongoDbUserService.GetUserListByKeywordAsync(searchFriendRequest.SearchKeyword);

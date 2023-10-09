@@ -4,16 +4,16 @@ using Chat.Model.Response;
 using Chat.Model.Response.Shared;
 using Chat.signalR;
 using Chat.Utils;
+using Chat.Utils.CustomAttribute;
 using Chat.Utils.MongoDb.UserFirendService;
 using Chat.Utils.MongoDb.UserService;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.Extensions.Caching.Memory;
-using System.ComponentModel.DataAnnotations;
 
 namespace Chat.Controllers {
 
+    [Authorize]
     public class UserFriendController : ApiControllerBase {
 
         private readonly bool IsDevelopment;

@@ -1,4 +1,5 @@
-﻿using Chat.Utils.MongoDb.UserFirendService;
+﻿using Chat.Utils.MongoDb.ChatMessageService;
+using Chat.Utils.MongoDb.UserFirendService;
 using Chat.Utils.MongoDb.UserService;
 
 namespace Chat.Utils.MongoDb {
@@ -7,6 +8,7 @@ namespace Chat.Utils.MongoDb {
             services.AddSingleton<IMongoDbUserService, MongoDbUserService>();
             services.AddSingleton<IMongoDbUserFriendService, MongoDbUserFriendService>();
             services.AddSingleton<IMongoDbLogInStateService, MongoDbLogInStateService>();
+            services.AddSingleton<IMongoDbChatMessageService, MongoDbChatMessageService>();
 
             return services;
         }

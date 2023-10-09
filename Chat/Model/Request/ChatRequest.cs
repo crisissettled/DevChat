@@ -1,3 +1,3 @@
 ﻿namespace Chat.Model.Request {
-    public record ChatRequest(string toUserId, string message);
+    public record ChatMessageRequest(string toUserId, string message);
 }
