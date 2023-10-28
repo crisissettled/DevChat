@@ -5,7 +5,7 @@ import searchFriendReducer from './User/searchFriendSlice'
 import userFriendReducer from './UserFriend/userFriendSlice'
 //import { userFriendApi } from "./api/userFriendApi";
 
-//import { doSignIn } from '../app/User/userSlice'
+import { doSignIn } from '../app/User/userSlice'
 
 export default configureStore({
     reducer: {
