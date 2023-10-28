@@ -12,12 +12,15 @@ export function PrivateRoute({ children, redirectPath = '/signin' }) {
         setRefreshStage(1)
         let response = await fetch('/api/User/RefreshSignIn', {
             method: "PUT",
-            credentials: "same-origin"
+            credentials: "same-origin",
+            headers: {
+                "Content-Type": "application/json"
+            }          
         })
 
         if (response.status !== 401) {
             var signInState = await response.json();
-            dispatch(doSignIn({ signedIn: true, token: signInState?.data, userId: signInState?.data.userId }))    
+            dispatch(doSignIn({ signedIn: true, token: signInState?.data?.token, userId: signInState?.data.userId }))    
             setRefreshStage(0)
         }
         setRefreshStage(2)

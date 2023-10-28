@@ -1,4 +1,5 @@
-﻿using Chat.Model.Configs;
+﻿using Chat.Model;
+using Chat.Model.Configs;
 using Chat.Utils;
 using Chat.Utils.MongoDb.UserService;
 using Microsoft.AspNetCore.Mvc;
@@ -57,10 +58,14 @@ namespace Chat.Utils.Middleware
                 return false;
 
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 // do nothing if jwt validation fails
                 // user is not attached to context so request won't have access to secure routes
+
+                if (ex is SecurityTokenExpiredException) {
+                    context.Items["IsExpired"] = Constants.YES;
+                }
                 return false;
             }
         }

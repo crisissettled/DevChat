@@ -79,11 +79,11 @@ export function Chat() {
                     });
                     hubConnection.on("FriendRequestNotification", (message) => {
                         console.log(message)
-                        dispatch(getUserFriends({ userId: loggedInUser.userId, Blocked: false })) // get current Logged In user's friend
+                        dispatch(getUserFriends({userId: loggedInUser.userId, Blocked: false })) // get current Logged In user's friend
                     });
                     hubConnection.on("FriendRequestAcceptOrDenyNotification", (message) => {
                         console.log(message)
-                        dispatch(getUserFriends({ userId: loggedInUser.userId, Blocked: false })) // get current Logged In user's friend
+                        dispatch(getUserFriends({userId: loggedInUser.userId, Blocked: false })) // get current Logged In user's friend
                     });
 
                 })

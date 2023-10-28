@@ -13,5 +13,9 @@
 
         //lang
         public const string USER_REQUEST_TEXT = "User Request";
+
+
+        public const string YES = "Y";
+        public const string NO = "N";
     }
 }

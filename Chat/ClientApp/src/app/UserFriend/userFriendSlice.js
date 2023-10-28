@@ -1,6 +1,7 @@
 ﻿import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 
 import { FETCH_STATUS_PENDING, FETCH_STATUS_FULFILLED, FETCH_STATUS_REJECTED } from '../../utils/Constants'
+import { httpFetch } from '../../utils/httpFetch'
 
 const addUserFriendEndpoint = '/api/UserFriend/AddUserFriend'
 const getUserFriendsEndpoint = '/api/UserFriend/GetUserFriends'
@@ -23,14 +24,9 @@ export const addUserFriend = createAsyncThunk(
 
 export const getUserFriends = createAsyncThunk(
     getUserFriendsEndpoint,
-    async ({ userId, Blocked = null }) => {    
-        let response = await fetch(getUserFriendsEndpoint, {
-            method: 'PUT',
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ userId, Blocked })
-        })
+    async ({userId, Blocked = null }, thunkAPI) => {    
+              
+        let response = await httpFetch(getUserFriendsEndpoint, "PUT", thunkAPI, { userId, Blocked });
         return response.json();
     }
 )
