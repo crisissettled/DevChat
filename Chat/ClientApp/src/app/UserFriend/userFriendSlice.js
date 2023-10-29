@@ -1,47 +1,27 @@
 ﻿import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
-
-import { FETCH_STATUS_PENDING, FETCH_STATUS_FULFILLED, FETCH_STATUS_REJECTED } from '../../utils/Constants'
+import { ApiEndPoints, FetchStatus } from '../../utils/Constants'
 import { httpFetch } from '../../utils/httpFetch'
 
-const addUserFriendEndpoint = '/api/UserFriend/AddUserFriend'
-const getUserFriendsEndpoint = '/api/UserFriend/GetUserFriends'
-const acceptOrDenyFriendsEndpoint = '/api/UserFriend/AcceptOrDenyFriend'
-
 export const addUserFriend = createAsyncThunk(
-    addUserFriendEndpoint,
-    async (body) => {
-        //console.log(body,"body")
-        let response = await fetch(addUserFriendEndpoint, {
-            method: 'POST',
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(body)
-        })
+    ApiEndPoints.ADD_USER_FRIEND,
+    async (data,thunkAPI) => {
+        let response = await httpFetch(ApiEndPoints.ADD_USER_FRIEND, "POST", thunkAPI, data);
         return response.json();
     }
 )
 
 export const getUserFriends = createAsyncThunk(
-    getUserFriendsEndpoint,
-    async ({userId, Blocked = null }, thunkAPI) => {    
-              
-        let response = await httpFetch(getUserFriendsEndpoint, "PUT", thunkAPI, { userId, Blocked });
+    ApiEndPoints.GET_USER_FRIENDS,
+    async ({userId, Blocked = null }, thunkAPI) => {               
+        let response = await httpFetch(ApiEndPoints.GET_USER_FRIENDS, "PUT", thunkAPI, { userId, Blocked });
         return response.json();
     }
 )
 
 export const acceptOrDenyFriend = createAsyncThunk(
-    acceptOrDenyFriendsEndpoint,
-    async ({ userId, friendUserId, acceptOrDeny }) => {
-        console.log({ userId, friendUserId, acceptOrDeny },"acceptOrDenyFriend")
-        let response = await fetch(acceptOrDenyFriendsEndpoint, {
-            method: 'PUT',
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ userId, friendUserId, acceptOrDeny })
-        })
+    ApiEndPoints.ACCEPT_OR_DENY_FRIENDS,
+    async (data, thunkAPI) => {
+        let response = await httpFetch(ApiEndPoints.ACCEPT_OR_DENY_FRIENDS, "PUT", thunkAPI, data);
         return response.json();
     }
 )
@@ -58,19 +38,19 @@ const userFriendSlice = createSlice({
     extraReducers: (builder) => {
         builder.addCase(addUserFriend.pending, (state, { meta }) => {         
             let userIdAndFriendId = `${meta.arg.userId}_${meta.arg.friendUserId}`;
-            state.individualStatus[userIdAndFriendId] = FETCH_STATUS_PENDING
-            state.status = FETCH_STATUS_PENDING
+            state.individualStatus[userIdAndFriendId] = FetchStatus.PENDING
+            state.status = FetchStatus.PENDING
 
         }).addCase(addUserFriend.fulfilled, (state, { payload,meta}) => {
             let userIdAndFriendId = `${meta.arg.userId}_${meta.arg.friendUserId}`;
-            state.individualStatus[userIdAndFriendId] = FETCH_STATUS_FULFILLED
+            state.individualStatus[userIdAndFriendId] = FetchStatus.FULFILLED
             console.log(payload, "getUserFriends.fulfilled")
-            state.status = FETCH_STATUS_FULFILLED
+            state.status = FetchStatus.FULFILLED
             state.data = payload.data
 
         }).addCase(addUserFriend.rejected, (state, action) => {
             console.log(action, "rejected-action")
-            state.status = FETCH_STATUS_REJECTED
+            state.status = FetchStatus.REJECTED
             if (action.payload) {
                 state.error = action.payload
             } else {
@@ -78,14 +58,14 @@ const userFriendSlice = createSlice({
             }
 
         }).addCase(getUserFriends.pending, (state) => {            
-            state.status = FETCH_STATUS_PENDING
+            state.status = FetchStatus.PENDING
 
         }).addCase(getUserFriends.fulfilled, (state, action) => {           
-            state.status = FETCH_STATUS_FULFILLED
+            state.status = FetchStatus.FULFILLED
             state.data = action.payload.data
 
         }).addCase(getUserFriends.rejected, (state, action) => {       
-            state.status = FETCH_STATUS_REJECTED
+            state.status = FetchStatus.REJECTED
             if (action.payload) {
                 state.error = action.payload
             } else {
@@ -93,14 +73,14 @@ const userFriendSlice = createSlice({
             }
         }).addCase(acceptOrDenyFriend.pending, (state, { meta }) => {
             let userIdAndFriendId = `${meta.arg.userId}_${meta.arg.friendUserId}`;
-            state.individualStatus[userIdAndFriendId] = FETCH_STATUS_PENDING
-            state.status = FETCH_STATUS_PENDING
+            state.individualStatus[userIdAndFriendId] = FetchStatus.PENDING
+            state.status = FetchStatus.PENDING
 
         }).addCase(acceptOrDenyFriend.fulfilled, (state, { payload, meta }) => {
             let userIdAndFriendId = `${meta.arg.userId}_${meta.arg.friendUserId}`;
-            state.individualStatus[userIdAndFriendId] = FETCH_STATUS_FULFILLED
+            state.individualStatus[userIdAndFriendId] = FetchStatus.FULFILLED
             console.log(payload, "acceptOrDenyFriend.fulfilled")
-            state.status = FETCH_STATUS_FULFILLED
+            state.status = FetchStatus.FULFILLED
             state.data = payload.data
         })
 

@@ -10,6 +10,7 @@
         //session
         public const string SESSION_COOKIE_KEY = "ChatRT";
         public const int SESSION_KEEP_LOGGED_IN_DAYS = 30;
+        public const int SESSION_COOKIE_UPDATE_INTERVAL_IN_SECONDS = 30;
 
         //lang
         public const string USER_REQUEST_TEXT = "User Request";

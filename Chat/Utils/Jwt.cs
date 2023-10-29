@@ -10,7 +10,7 @@ namespace Chat.Utils {
         public static string AccessSecret = "asfdasgw2324wr23rfwfsafasd";
         public static string Issuer = "asfdsf";
         public static string Audience = "dfdsfasdf";
-        public static int intExpiryInSeconds = 60;
+        public static int intExpiryInSeconds = 5;
         public static string GenerateAccessToken(string UserId) {
             var claims = new[]{
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),

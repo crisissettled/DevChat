@@ -1,6 +1,6 @@
 ﻿import { useSelector, useDispatch } from 'react-redux'
 import { addUserFriend } from '../../app/UserFriend/userFriendSlice'
-import { FETCH_STATUS_PENDING, FriendStatus } from '../../utils/Constants'
+import { FetchStatus, FriendStatus } from '../../utils/Constants'
 import { Spinner } from '../spinner/Spinner'
 export function AddFriendRow({ data, curUserId }) {
 
@@ -12,7 +12,7 @@ export function AddFriendRow({ data, curUserId }) {
     }
 
     let friend = userFriend?.data?.find(e => e?.friendUserId === data.userId)
-    let spinnerVisibilityClass = userFriend.status === FETCH_STATUS_PENDING && userFriend.individualStatus[`${curUserId}_${data.userId}`] === FETCH_STATUS_PENDING ? "visible" : "invisible"
+    let spinnerVisibilityClass = userFriend.status === FetchStatus.PENDING && userFriend.individualStatus[`${curUserId}_${data.userId}`] === FetchStatus.PENDING ? "visible" : "invisible"
 
 
     return (

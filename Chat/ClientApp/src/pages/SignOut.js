@@ -1,7 +1,7 @@
 ﻿
 import { useDispatch } from 'react-redux'
 import { Link } from "react-router-dom";
-import { doSignOut } from '../app/User/userSlice'
+import { userSignOut } from '../app/User/userSlice'
 import { Logo } from '../components/logo/Logo'
 
 
@@ -9,15 +9,7 @@ export function SignOut() {
     const dispatch = useDispatch();
 
     const handleSignOut = async () => {
-
-        let response = await fetch("/api/user/signchatout", {
-            method: "PUT",
-            headers: {
-                "Content-Type": "application/json"
-            }
-        })
-
-        if (response.ok) dispatch(doSignOut())
+      dispatch(userSignOut())
     }
 
     return (

@@ -121,7 +121,7 @@ namespace Chat.Controllers {
             if (signInRequest.KeepLoggedIn == true) options.Expires = DateTime.Now.AddDays(Constants.SESSION_KEEP_LOGGED_IN_DAYS); // 30 days keep logged in
             _httpContextAccessor.HttpContext!.Response.Cookies.Append(Constants.SESSION_COOKIE_KEY, refreshToken, options);
 
-            return Ok(new ResponseResult(ResultCode.Success, IsDevelopment) { data = new { token, user.UserId} });
+            return Ok(new ResponseResult(ResultCode.Success, IsDevelopment) { data = new { token, user.UserId } });
         }
 
 
@@ -131,11 +131,18 @@ namespace Chat.Controllers {
             if (curRefreshToken == null) return Unauthorized(new ResponseResult(ResultCode.UnAutherized, IsDevelopment));
 
             var curLogInState = await _mongoDbLoginStateService.GetLogInState(curRefreshToken);
-            if(curLogInState == null ) return Unauthorized(new ResponseResult(ResultCode.UnAutherized, IsDevelopment));
+            if (curLogInState == null) return Unauthorized(new ResponseResult(ResultCode.UnAutherized, IsDevelopment));
 
-            if(curLogInState.UserId != null && curRefreshToken.Substring(0,curLogInState.UserId.Length) == curLogInState.UserId && curLogInState.IsSignedOut == false) {
+            if (curLogInState.UserId != null && curRefreshToken.Substring(0, curLogInState.UserId.Length) == curLogInState.UserId && curLogInState.IsSignedOut == false) {
                 var token = Jwt.GenerateAccessToken(curLogInState.UserId);
-                var refreshToken = Jwt.GenerateRefreshToken(curLogInState.UserId);
+
+                //update every [SESSION_COOKIE_UPDATE_INTERVAL_IN_SECONDS] seconds, to avoid confilcts more than requests at the same time
+                var booUpdateRefreshToken = curLogInState.UpdatedAt.AddSeconds(Constants.SESSION_COOKIE_UPDATE_INTERVAL_IN_SECONDS) < DateTime.Now;
+
+                var refreshToken = curRefreshToken;
+                if (booUpdateRefreshToken == true) {
+                    Jwt.GenerateRefreshToken(curLogInState.UserId);
+                }
 
                 var newLogInState = new LogInState(curLogInState.UserId, token, refreshToken) { KeepLoggedIn = curLogInState.KeepLoggedIn };
                 await _mongoDbLoginStateService.UpsertLoginState(newLogInState);
@@ -164,7 +171,7 @@ namespace Chat.Controllers {
                 options.Expires = DateTime.Now.AddDays(-100);
                 _httpContextAccessor.HttpContext!.Response.Cookies.Append(Constants.SESSION_COOKIE_KEY, "", options);
             }
-            
+
             return Ok(new ResponseResult(ResultCode.Success, IsDevelopment));
         }
 

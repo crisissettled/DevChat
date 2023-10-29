@@ -1,6 +1,6 @@
 ﻿import { acceptOrDenyFriend } from '../../app/UserFriend/userFriendSlice'
 import { useSelector, useDispatch } from 'react-redux'
-import { FriendStatusKey, FETCH_STATUS_PENDING } from '../../utils/Constants'
+import { FriendStatusKey, FetchStatus } from '../../utils/Constants'
 import { Spinner } from '../spinner/Spinner'
 export function AddFriendButtons(props) {
     const user= useSelector(state => state.user)
@@ -12,7 +12,7 @@ export function AddFriendButtons(props) {
         dispacth(acceptOrDenyFriend({ userId: user.userId, friendUserId: props.friendUserId, acceptOrDeny }))
     }
 
-    let spinnerVisibility = userFriend.status === FETCH_STATUS_PENDING && userFriend.individualStatus[`${user.userId}_${props.friendUserId}`] === FETCH_STATUS_PENDING ? true : false
+    let spinnerVisibility = userFriend.status === FetchStatus.PENDING && userFriend.individualStatus[`${user.userId}_${props.friendUserId}`] === FetchStatus.PENDING ? true : false
 
     let friendRequestPending = props.friendRequestReceiver !== user.userId
 

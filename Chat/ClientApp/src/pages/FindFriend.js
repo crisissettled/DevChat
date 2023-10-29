@@ -1,14 +1,10 @@
 ﻿import { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux'
 import { Spinner } from '../components/spinner/Spinner'
-import { FETCH_STATUS_PENDING, FETCH_STATUS_FULFILLED } from '../utils/Constants'
+import { FetchStatus } from '../utils/Constants'
 import { searchUserFriend } from '../app/User/searchFriendSlice'
 import { getUserFriends } from '../app/UserFriend/userFriendSlice'
 import { AddFriendRow } from '../components/friend/AddFriendRow';
-
-
-
-
 
 export function FindFriend() {
     const [searchKeyWord, setSearchKeyWord] = useState("")
@@ -24,7 +20,7 @@ export function FindFriend() {
     }, [])
 
 
-    if (searchFriend.status === FETCH_STATUS_PENDING) return <Spinner />
+    if (searchFriend.status === FetchStatus.PENDING) return <Spinner />
 
     return (
         <>
@@ -34,7 +30,7 @@ export function FindFriend() {
             </div>
             <div className="table-responsive mt-3">
                 {
-                    searchFriend.status === FETCH_STATUS_FULFILLED ?
+                    searchFriend.status === FetchStatus.FULFILLED ?
                         (<table className="table table-hover">
                             <thead className="table-primary">
                                 <tr>

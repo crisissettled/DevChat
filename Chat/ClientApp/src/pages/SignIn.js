@@ -1,6 +1,6 @@
 ﻿import { useState } from "react"
 import { Navigate, Link } from "react-router-dom";
-import { doSignIn } from '../app/User/userSlice'
+import { userSignIn } from '../app/User/userSlice'
 import { useSelector, useDispatch } from 'react-redux'
 
 export function SignIn() {
@@ -9,31 +9,15 @@ export function SignIn() {
     const [keepLoggedIn, setKeepLoggedIn] = useState(false);
 
     const dispatch = useDispatch()
-    const userState = useSelector((state) => state.user)
-    //console.log(userState, "userState in SignIn page");
-    if (userState?.isSignedIn === true) return <Navigate to="/chat" replace />;
+    const loggedInUser = useSelector((state) => state.user)
+
+    if (loggedInUser?.isSignedIn === true) return <Navigate to="/chat" replace />;
 
     const handleSubmit = async (e) => {
         e.preventDefault()
         if (userId === "" || password === "") return;
 
-        const response = await fetch("/api/User/SignIn", {
-            method: "PUT",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ userId, password, keepLoggedIn }),
-        })
-
-        if (response.ok) {
-            const userState = await response.json();
-            if (userState?.data) {
-                dispatch(doSignIn({ signedIn: true, token: userState?.data?.token, userId: userState?.data?.userId }))
-            }
-        }
-        else {
-            alert("Sign In failed")
-        }
+        dispatch(userSignIn({ userId, password, keepLoggedIn }))
     }
 
     return (

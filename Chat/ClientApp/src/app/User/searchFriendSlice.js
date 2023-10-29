@@ -1,19 +1,12 @@
 ﻿import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 
-import { FETCH_STATUS_PENDING, FETCH_STATUS_FULFILLED, FETCH_STATUS_REJECTED } from '../../utils/Constants'
-
-const searchFriendEndpoint = '/api/User/SearchFriend'
+import { ApiEndPoints, FetchStatus } from '../../utils/Constants'
+import { httpFetch } from '../../utils/httpFetch';
 
 export const searchUserFriend = createAsyncThunk(
-    searchFriendEndpoint,
-    async (SearchKeyword = '') => {
-        let response = await fetch(searchFriendEndpoint, {
-            method: 'PUT',
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ SearchKeyword })
-        })
+    ApiEndPoints.SEARCH_FRIEND,
+    async (SearchKeyword = '',thunkAPI) => {     
+        let response = await httpFetch(ApiEndPoints.SEARCH_FRIEND, "PUT", thunkAPI, { SearchKeyword });
         return response.json();
     }
 )
@@ -28,12 +21,12 @@ const searchFriendSlice = createSlice({
     reducers: {},
     extraReducers: (builder) => {
         builder.addCase(searchUserFriend.pending, (state, action) => {
-            state.status = FETCH_STATUS_PENDING
+            state.status = FetchStatus.PENDING
         }).addCase(searchUserFriend.fulfilled, (state, { payload }) => {
-            state.status = FETCH_STATUS_FULFILLED
+            state.status = FetchStatus.FULFILLED
             state.data = payload.data
         }).addCase(searchUserFriend.rejected, (state, action) => {
-            state.status = FETCH_STATUS_REJECTED
+            state.status = FetchStatus.REJECTED
             if (action.payload) {
                 state.error = action.payload
             } else {

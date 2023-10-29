@@ -10,6 +10,7 @@ import { FriendInfoRow } from '../components/friend/FriendInfoRow';
 import { AddFriendButtons } from '../components/friend/AddFriendButtons';
 
 import styles from './chat.module.css'
+import { refreshToken } from '../utils/httpFetch';
 
 export function Chat() {
     const dispatch = useDispatch();
@@ -31,20 +32,25 @@ export function Chat() {
         const con = new HubConnectionBuilder()
             .withUrl(`${hubChatEndPoint}`, {
                 accessTokenFactory: () => {
-                    return fetch('/api/User/RefreshSignIn', {
-                        method: "PUT",
-                        credentials: "same-origin"
-                    })
-                        .then(res => res.json())
-                        .then(json => json?.data)
-                        .then(data => data?.token)
+                    //return fetch(ApiEndPoints.USER_REFRESH_SIGN_IN, {
+                    //    method: "PUT",
+                    //    credentials: "same-origin"
+                    //})
+                    //    .then(res => res.json())
+                    //    .then(json => json?.data)
+                    //    .then(data => data?.token)
 
-                    //if (response.status !== 401) {
-                    //    var signInState = await ;
-                    //    dispatch(doSignIn({ signedIn: true, token: signInState?.data, userId: signInState?.data.userId }))
-                    //}
+                    ////if (response.status !== 401) {
+                    ////    var signInState = await ;
+                    ////    dispatch(doSignIn({ signedIn: true, token: signInState?.data, userId: signInState?.data.userId }))
+                    ////}
 
                     //return loggedInUser?.token;
+
+                    return refreshToken()
+                        .then(res => res.json())
+                        .then(json => json?.data)
+                        .then(result => result?.token)
 
                 },
                 skipNegotiation: true,
