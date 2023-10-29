@@ -6,7 +6,7 @@ export async function httpFetch(url, method, thunkAPI, data = null) {
     const token = user.token;
 
     const headers = new Headers({
-        "Content-Type": "application/json",
+        "Content-Type": "application/json;charset=utf-8",
         "Authorization": `Bearer ${token}`
     });
 
@@ -23,9 +23,7 @@ export async function httpFetch(url, method, thunkAPI, data = null) {
 
     let response = await fetch(requestFirst);
     if (response.ok) return response;
-
-    if (requestOptions.body) delete requestOptions.body;
-    //console.log(response.status,"response.status")
+ 
     if (response.status === 401 && url !== ApiEndPoints.USER_SIGN_IN) {
         response = await refreshToken();
         if (response.ok) {
@@ -34,9 +32,7 @@ export async function httpFetch(url, method, thunkAPI, data = null) {
             dispatch(doSignIn({ signedIn: true, token: newToken, userId: user.userId }))
 
             //fetch-retry with new token    
-            headers.set("Content-Type", "application/json");
-            headers.set("Authorization", `Bearer ${newToken}`);        
-            if (data != null) requestOptions["body"] = JSON.stringify(data);
+            headers.set("Authorization", `Bearer ${newToken}`);
             const requestRetry = new Request(url, requestOptions);
     
             response = await fetch(requestRetry);
