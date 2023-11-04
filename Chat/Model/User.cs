@@ -26,7 +26,7 @@ namespace Chat.Model {
     }
 
 
-    public class LogInState {
+    public class UserSessionState {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
         public string? Id { get; set; }
@@ -41,7 +41,7 @@ namespace Chat.Model {
         [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
         public DateTime UpdatedAt { get; set; } = DateTime.Now;
 
-        public LogInState(string UserId,string Token, string RefreshToken) {
+        public UserSessionState(string UserId,string Token, string RefreshToken) {
             this.UserId = UserId;
             this.Token = Token;
             this.RefreshToken = RefreshToken;

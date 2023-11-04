@@ -90,11 +90,12 @@ export function Chat() {
                         });
                     });
                     hubConnection.on("FriendRequestNotification", (message) => {
-                        console.log(message)
+                        console.log(message,'-----FriendRequestNotification----')
                         dispatch(getUserFriends({userId: loggedInUser.userId, Blocked: false })) // get current Logged In user's friend
                     });
                     hubConnection.on("FriendRequestAcceptOrDenyNotification", (message) => {
-                        console.log(message)
+                        console.log(message, '----FriendRequestAcceptOrDenyNotification----')
+                        console.log(loggedInUser, '----loggedInUser - FriendRequestAcceptOrDenyNotification----')
                         dispatch(getUserFriends({userId: loggedInUser.userId, Blocked: false })) // get current Logged In user's friend
                     });
 

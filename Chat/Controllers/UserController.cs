@@ -15,16 +15,16 @@ namespace Chat.Controllers {
     public class UserController : ApiControllerBase {
         private readonly bool IsDevelopment;
         private readonly IMongoDbUserService _mongoDbUserService;
-        private readonly IMongoDbLogInStateService _mongoDbLoginStateService;
+        private readonly IMongoDbUserSessionStateService _mongoDbUserSessionStateService;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
         public UserController(IHostEnvironment env,
             IMongoDbUserService mongoDbUserService,
-            IMongoDbLogInStateService mongoDbLoginStateService,
+            IMongoDbUserSessionStateService mongoDbUserSessionStateService,
             IHttpContextAccessor httpContextAccessor) : base(env) {
             IsDevelopment = env.IsDevelopment();
             _mongoDbUserService = mongoDbUserService;
-            _mongoDbLoginStateService = mongoDbLoginStateService;
+            _mongoDbUserSessionStateService = mongoDbUserSessionStateService;
             _httpContextAccessor = httpContextAccessor;
         }
 
@@ -112,8 +112,8 @@ namespace Chat.Controllers {
             var token = Jwt.GenerateAccessToken(signInRequest.UserId);
             var refreshToken = Jwt.GenerateRefreshToken(signInRequest.UserId);
 
-            var logInState = new LogInState(signInRequest.UserId, token, refreshToken) { KeepLoggedIn = signInRequest.KeepLoggedIn };
-            await _mongoDbLoginStateService.UpsertLoginState(logInState);
+            var userSessionState = new UserSessionState(signInRequest.UserId, token, refreshToken) { KeepLoggedIn = signInRequest.KeepLoggedIn };
+            await _mongoDbUserSessionStateService.UpsertUserSessionState(userSessionState);
 
             CookieOptions options = new CookieOptions();
             options.HttpOnly = true;
@@ -130,30 +130,30 @@ namespace Chat.Controllers {
             var curRefreshToken = _httpContextAccessor.HttpContext!.Request.Cookies[Constants.SESSION_COOKIE_KEY];
             if (curRefreshToken == null) return Unauthorized(new ResponseResult(ResultCode.UnAutherized, IsDevelopment));
 
-            var curLogInState = await _mongoDbLoginStateService.GetLogInState(curRefreshToken);
-            if (curLogInState == null) return Unauthorized(new ResponseResult(ResultCode.UnAutherized, IsDevelopment));
+            var curUserSessionState = await _mongoDbUserSessionStateService.GetUserSessionState(curRefreshToken);
+            if (curUserSessionState == null) return Unauthorized(new ResponseResult(ResultCode.UnAutherized, IsDevelopment));
 
-            if (curLogInState.UserId != null && curRefreshToken.Substring(0, curLogInState.UserId.Length) == curLogInState.UserId && curLogInState.IsSignedOut == false) {
-                var token = Jwt.GenerateAccessToken(curLogInState.UserId);
+            if (curUserSessionState.UserId != null && curRefreshToken.Substring(0, curUserSessionState.UserId.Length) == curUserSessionState.UserId && curUserSessionState.IsSignedOut == false) {
+                var token = Jwt.GenerateAccessToken(curUserSessionState.UserId);
 
                 //update every [SESSION_COOKIE_UPDATE_INTERVAL_IN_SECONDS] seconds, to avoid confilcts more than requests at the same time
-                var booUpdateRefreshToken = curLogInState.UpdatedAt.AddSeconds(Constants.SESSION_COOKIE_UPDATE_INTERVAL_IN_SECONDS) < DateTime.Now;
+                var booUpdateRefreshToken = curUserSessionState.UpdatedAt.AddSeconds(Constants.SESSION_COOKIE_UPDATE_INTERVAL_IN_SECONDS) < DateTime.Now;
 
                 var refreshToken = curRefreshToken;
                 if (booUpdateRefreshToken == true) {
-                    Jwt.GenerateRefreshToken(curLogInState.UserId);
+                    Jwt.GenerateRefreshToken(curUserSessionState.UserId);
                 }
 
-                var newLogInState = new LogInState(curLogInState.UserId, token, refreshToken) { KeepLoggedIn = curLogInState.KeepLoggedIn };
-                await _mongoDbLoginStateService.UpsertLoginState(newLogInState);
+                var newUserSessionState = new UserSessionState(curUserSessionState.UserId, token, refreshToken) { KeepLoggedIn = curUserSessionState.KeepLoggedIn };
+                await _mongoDbUserSessionStateService.UpsertUserSessionState(newUserSessionState);
 
                 CookieOptions options = new CookieOptions();
                 options.HttpOnly = true;
                 options.SameSite = SameSiteMode.Strict;
-                if (curLogInState.KeepLoggedIn == true) options.Expires = DateTime.Now.AddDays(Constants.SESSION_KEEP_LOGGED_IN_DAYS); // 30 days keep logged in
+                if (curUserSessionState.KeepLoggedIn == true) options.Expires = DateTime.Now.AddDays(Constants.SESSION_KEEP_LOGGED_IN_DAYS); // 30 days keep logged in
                 _httpContextAccessor.HttpContext!.Response.Cookies.Append(Constants.SESSION_COOKIE_KEY, refreshToken, options);
 
-                return Ok(new ResponseResult(ResultCode.Success, IsDevelopment) { data = new { token, curLogInState.UserId } });
+                return Ok(new ResponseResult(ResultCode.Success, IsDevelopment) { data = new { token, curUserSessionState.UserId } });
             }
 
             return Unauthorized(new ResponseResult(ResultCode.UnAutherized, IsDevelopment));
@@ -164,8 +164,8 @@ namespace Chat.Controllers {
         public async Task<ActionResult> SignChatOut() {
             var curRefreshToken = _httpContextAccessor.HttpContext!.Request.Cookies[Constants.SESSION_COOKIE_KEY];
             if (curRefreshToken != null) {
-                var curLogInState = await _mongoDbLoginStateService.GetLogInState(curRefreshToken);
-                await _mongoDbLoginStateService.UpdateSignOut(curLogInState.UserId, true);
+                var curUserSessionState = await _mongoDbUserSessionStateService.GetUserSessionState(curRefreshToken);
+                await _mongoDbUserSessionStateService.UpdateSignOut(curUserSessionState.UserId, true);
 
                 CookieOptions options = new CookieOptions();
                 options.Expires = DateTime.Now.AddDays(-100);
