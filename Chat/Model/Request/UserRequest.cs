@@ -19,20 +19,20 @@ namespace Chat.Model.Request {
         }
     }
 
-    public record UpdateProfileRequest(
+    public record UpdateUserInfoRequest(
         string UserId,
         string? Password,
         string? NewPassword,
         string Name,
         Gender Gender,
-        string? Province,
-        string? City,
-        string? Address,
-        string? Phone,
-        string? Email
+        string Province = "",
+        string City = "",
+        string Address = "",
+        string Phone = "",
+        string Email = ""
     );
-    public class UpdateProfileRequestValidator : AbstractValidator<UpdateProfileRequest> {
-        public UpdateProfileRequestValidator() {
+    public class UpdateUserInfoRequestValidator : AbstractValidator<UpdateUserInfoRequest> {
+        public UpdateUserInfoRequestValidator() {
             RuleFor(x => x.Name).NotEmpty();
             RuleFor(x => x.Email).EmailAddress().When(x => !string.IsNullOrEmpty(x.Email));
             RuleFor(x => x.Gender).IsInEnum();

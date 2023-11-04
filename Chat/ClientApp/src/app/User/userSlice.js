@@ -27,13 +27,23 @@ export const getUserInfo = createAsyncThunk(
     }
 )
 
+export const updateUserInfo = createAsyncThunk(
+    ApiEndPoints.USER_UPDATE_USER_INFO,
+    async (data, thunkAPI) => {
+        let response = await httpFetch(ApiEndPoints.USER_UPDATE_USER_INFO, "PUT", thunkAPI, data);
+        return response.json();
+    }
+)
+
 export const userSlice = createSlice({
     name: 'user',
     initialState: {
         isSignedIn: null,
         token: null,
         userId: null,
-        hubConnectionState:"",
+        hubConnectionState: "",
+        status: "idle",
+        error:null,
         data: null
     },
     reducers: {
@@ -104,7 +114,21 @@ export const userSlice = createSlice({
             } else {
                 state.error = action.error
             }
+        }).addCase(updateUserInfo.pending, (state) => {
+            state.status = FetchStatus.PENDING
 
+        }).addCase(updateUserInfo.fulfilled, (state, { payload}) => {
+            state.status = FetchStatus.FULFILLED            
+            state.data = payload?.data
+
+        }).addCase(updateUserInfo.rejected, (state, action) => {
+            state.status = FetchStatus.REJECTED
+         
+            if (action.payload) {
+                state.error = action.payload
+            } else {
+                state.error = action.error
+            }
         })
     }
 })

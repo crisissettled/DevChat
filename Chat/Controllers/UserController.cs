@@ -60,48 +60,65 @@ namespace Chat.Controllers {
         [Authorize]
         public async Task<ActionResult> GetUserInfo(string userId) {
             var user = await _mongoDbUserService.GetUserAsync(userId);
+            var userResponse = new UserResponse(user.UserId) {
+                Name = user.Name,
+                Gender = user.Gender,
+                Phone = user.Phone,
+                Email = user.Email,
+                Province    = user.Province,
+                City = user.City,
+                Address = user.Address,
+            };
 
-            return Ok(new ResponseResult(ResultCode.Success, IsDevelopment) { data = user});
+            return Ok(new ResponseResult(ResultCode.Success, IsDevelopment) { data = userResponse });
         }
-
         [HttpPut]
         [Authorize]
-        public async Task<ActionResult> UpdateProfile(
-            [FromServices] IValidator<UpdateProfileRequest> validator,
-            [FromServices] ICrypto crypto,
-            UpdateProfileRequest updateProfileRequest) {
+        public async Task<ActionResult> UpdateUserInfo(
+        [FromServices] IValidator<UpdateUserInfoRequest> validator,
+        [FromServices] ICrypto crypto,
+        UpdateUserInfoRequest updateUserInfoRequest) {
 
-            if (updateProfileRequest == null) return BadRequest(new ResponseResult(ResultCode.BadDataRequest, IsDevelopment));
+            if (updateUserInfoRequest == null) return BadRequest(new ResponseResult(ResultCode.BadDataRequest, IsDevelopment));
 
-            var resultValidate = await validator.ValidateAsync(updateProfileRequest);
+            var resultValidate = await validator.ValidateAsync(updateUserInfoRequest);
             if (!resultValidate.IsValid) {
                 return ValidationResult(resultValidate);
             }
 
-            if (!string.IsNullOrEmpty(updateProfileRequest.Password) && !string.IsNullOrEmpty(updateProfileRequest.NewPassword)) {
-                var currentUser = await _mongoDbUserService.GetUserAsync(updateProfileRequest.UserId);
-                if (currentUser == null || currentUser.Password != crypto.SHA256Encrypt(updateProfileRequest.Password)) {
+            if (!string.IsNullOrEmpty(updateUserInfoRequest.Password) && !string.IsNullOrEmpty(updateUserInfoRequest.NewPassword)) {
+                var currentUser = await _mongoDbUserService.GetUserAsync(updateUserInfoRequest.UserId);
+                if (currentUser == null || currentUser.Password != crypto.SHA256Encrypt(updateUserInfoRequest.Password)) {
                     return BadRequestResult(ResultCode.NoDataFound);
                 }
             }
 
             var newUser = new User(
-                    updateProfileRequest.UserId,
-                    string.IsNullOrEmpty(updateProfileRequest.Password) == true || string.IsNullOrEmpty(updateProfileRequest.NewPassword) == true ? "" : crypto.SHA256Encrypt(updateProfileRequest.NewPassword),
-                    updateProfileRequest.Name) {
-                Gender = updateProfileRequest.Gender,
-                Province = updateProfileRequest.Province,
-                City = updateProfileRequest.City,
-                Address = updateProfileRequest.Address,
-                Phone = updateProfileRequest.Phone,
-                Email = updateProfileRequest.Email
+                    updateUserInfoRequest.UserId,
+                    string.IsNullOrEmpty(updateUserInfoRequest.Password) == true || string.IsNullOrEmpty(updateUserInfoRequest.NewPassword) == true ? "" : crypto.SHA256Encrypt(updateUserInfoRequest.NewPassword),
+                    updateUserInfoRequest.Name) {
+                Gender = updateUserInfoRequest.Gender,
+                Province = updateUserInfoRequest.Province,
+                City = updateUserInfoRequest.City,
+                Address = updateUserInfoRequest.Address,
+                Phone = updateUserInfoRequest.Phone,
+                Email = updateUserInfoRequest.Email
             };
 
             await _mongoDbUserService.UpdateUserAsync(newUser);
 
-            var user = await _mongoDbUserService.GetUserAsync(updateProfileRequest.UserId);
+            var user = await _mongoDbUserService.GetUserAsync(updateUserInfoRequest.UserId);
+            var userResponse = new UserResponse(user.UserId) {
+                Name = user.Name,
+                Gender = user.Gender,
+                Phone = user.Phone,
+                Email = user.Email,
+                Province = user.Province,
+                City = user.City,
+                Address = user.Address,
+            };
 
-            return Ok(new ResponseResult(ResultCode.Success, IsDevelopment) { data = user });
+            return Ok(new ResponseResult(ResultCode.Success, IsDevelopment) { data = userResponse });
         }
 
         [HttpPut]

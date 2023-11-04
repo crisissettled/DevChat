@@ -2,24 +2,30 @@
 import { useSelector, useDispatch } from 'react-redux'
 import { useForm } from "react-hook-form"
 
-import { getUserInfo } from '../app/User/userSlice'
-import { Gender } from '../utils/Constants'
+import { getUserInfo, updateUserInfo } from '../app/User/userSlice'
+import { FetchStatus } from '../utils/Constants';
+
 
 export function Profile() {
     const user = useSelector(state => state.user);
     const dispach = useDispatch();
-    const { register, handleSubmit } = useForm()
+    const { register, handleSubmit, reset } = useForm({ defaultValues: user.data });
 
     useEffect(() => {
         dispach(getUserInfo(user.userId))
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
-    if (user.data === null) return <div>No data available.</div>
+    useEffect(() => {
+        reset(user.data)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [user.data])
 
-    const onSubmit = (data) => console.log(data)
+    const onSubmit = (data) => {
+        dispach(updateUserInfo({ ...data, gender: +data.gender }));
+    }
 
-    const { name, gender, phone, email, province, city, address } = user.data;
+    console.log(user.status,"user.state")
 
     return (
 
@@ -33,12 +39,13 @@ export function Profile() {
                 <h5>User Info</h5>
                 <div className="row my-2">
                     <div className="col-3">
-                        <input {...register("name")} value={name ?? ""} placeholder="Name" className="form-control" />
+                        <input {...register("name")} placeholder="Name" className="form-control" />
                     </div> <div className="col-2">
-                        <select {...register("gender")} value={gender} placeholder="gender" className="form-control">
-                            <option value="2">Female</option>
+                        <select {...register("gender")} placeholder="gender" className="form-control">
+                            <option value="0">NotSet</option>
                             <option value="1">Male</option>
-                            <option value="0">Unknown</option>
+                            <option value="2">Female</option>
+                            <option value="3">Unknown</option>
                         </select>
                     </div>
                 </div>
@@ -66,12 +73,12 @@ export function Profile() {
                 <h5>Contact Info</h5>
                 <div className="row my-2">
                     <div className="col-3">
-                        <input {...register("phone")} value={phone ?? ""} placeholder="phone" className="form-control" />
+                        <input {...register("phone")} placeholder="phone" className="form-control" />
                     </div>
                 </div>
                 <div className="row my-2">
                     <div className="col-5">
-                        <input {...register("email")} value={email ?? ""} placeholder="email" className="form-control" />
+                        <input {...register("email")} placeholder="email" className="form-control" />
                     </div>
                 </div>
             </section>
@@ -79,23 +86,23 @@ export function Profile() {
                 <h5>Area</h5>
                 <div className="row my-2">
                     <div className="col-3">
-                        <input {...register("province")} value={province ?? ""} placeholder="province" className="form-control" />
+                        <input {...register("province")} placeholder="province" className="form-control" />
                     </div>
                 </div>
                 <div className="row my-2">
                     <div className="col-3">
-                        <input {...register("city")} value={city ?? ""} placeholder="city" className="form-control" />
+                        <input {...register("city")} placeholder="city" className="form-control" />
                     </div>
                 </div>
                 <div className="row my-2">
                     <div className="col-6">
-                        <input {...register("address")} value={address ?? ""} placeholder="address" className="form-control" />
+                        <input {...register("address")} placeholder="address" className="form-control" />
                     </div>
                 </div>
             </section>
             <div className="row my-2">
                 <div className="col-3">
-                    <input type="submit" className="btn btn-primary" />
+                    {user.status === FetchStatus.PENDING ? <h5>Updating...</h5> : <input type="submit" className="btn btn-primary" />}
                 </div>
             </div>
         </form >
