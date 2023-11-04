@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 
 import { updateHubConnectionState } from '../app/User/userSlice'
 import { getUserFriends } from '../app/UserFriend/userFriendSlice'
+import { setupHubConnection } from '../app/HubConnection/useHubConnectionSlice'
 import { FriendStatusKey, MenuTabs } from '../utils/Constants'
 import { FriendInfoRow } from '../components/friend/FriendInfoRow';
 import { AddFriendButtons } from '../components/friend/AddFriendButtons';
@@ -16,11 +17,11 @@ export function Chat() {
     const dispatch = useDispatch();
     const userFriends = useSelector(state => state.userFriend)
     const loggedInUser = useSelector(state => state.user)
+    const { data: hubConnection } = useSelector(state => state.hubConnection)
 
     const [friendMenuTab, setfriendMenuTab] = useState(MenuTabs.Tab1)
     const [friendUserId, setFriendUserId] = useState(null)
 
-    const [hubConnection, sethubConnection] = useState(null);
     const [messageToSend, setMessageToSend] = useState(null);
     const [messageHistory, setMessageHistory] = useState({});
 
@@ -29,51 +30,50 @@ export function Chat() {
     const hubChatEndPoint = '/hubs/chat'
 
     useEffect(() => {
-        const con = new HubConnectionBuilder()
-            .withUrl(`${hubChatEndPoint}`, {
-                accessTokenFactory: () => {
-                    //return fetch(ApiEndPoints.USER_REFRESH_SIGN_IN, {
-                    //    method: "PUT",
-                    //    credentials: "same-origin"
-                    //})
-                    //    .then(res => res.json())
-                    //    .then(json => json?.data)
-                    //    .then(data => data?.token)
+        if (hubConnection === null) {
+            const con = new HubConnectionBuilder()
+                .withUrl(`${hubChatEndPoint}`, {
+                    accessTokenFactory: () => {
+                        //return fetch(ApiEndPoints.USER_REFRESH_SIGN_IN, {
+                        //    method: "PUT",
+                        //    credentials: "same-origin"
+                        //})
+                        //    .then(res => res.json())
+                        //    .then(json => json?.data)
+                        //    .then(data => data?.token)
 
-                    ////if (response.status !== 401) {
-                    ////    var signInState = await ;
-                    ////    dispatch(doSignIn({ signedIn: true, token: signInState?.data, userId: signInState?.data.userId }))
-                    ////}
+                        ////if (response.status !== 401) {
+                        ////    var signInState = await ;
+                        ////    dispatch(doSignIn({ signedIn: true, token: signInState?.data, userId: signInState?.data.userId }))
+                        ////}
 
-                    //return loggedInUser?.token;
+                        //return loggedInUser?.token;
 
-                    return refreshToken()
-                        .then(res => res.json())
-                        .then(json => json?.data)
-                        .then(result => result?.token)
+                        return refreshToken()
+                            .then(res => res.json())
+                            .then(json => json?.data)
+                            .then(result => result?.token)
 
-                },
-                skipNegotiation: true,
-                transport: HttpTransportType.WebSockets
-            })
-            .configureLogging(LogLevel.Information)
-            .withAutomaticReconnect()
-            .build();
+                    },
+                    skipNegotiation: true,
+                    transport: HttpTransportType.WebSockets
+                })
+                .configureLogging(LogLevel.Information)
+                .withAutomaticReconnect()
+                .build();
 
-        sethubConnection(con);
+            dispatch(setupHubConnection({ hubConnection: con }));
+        }
 
         dispatch(getUserFriends({ userId: loggedInUser.userId, Blocked: false })) // get current Logged In user's friend
 
-        return () => { con.stop() }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
         if (hubConnection) {
-            dispatch(updateHubConnectionState({ connectionState: hubConnection.state }))
             hubConnection.start()
-                .then(_ => {
-                    dispatch(updateHubConnectionState({ connectionState: hubConnection.state }))
+                .then(_ => {                    
                     //console.log("signalr hub connected", hubConnection?.state)
                     hubConnection.on('ReceiveMessage', (fromUserId, message) => {
                         //console.log(messageHistory, fromUserId, message, 'messageHistory in ReceiveMessage, fromUserId, message,')
@@ -85,16 +85,15 @@ export function Chat() {
                     });
                     hubConnection.on("FriendRequestNotification", (message) => {
                         console.log(message)
-                        dispatch(getUserFriends({userId: loggedInUser.userId, Blocked: false })) // get current Logged In user's friend
+                        dispatch(getUserFriends({ userId: loggedInUser.userId, Blocked: false })) // get current Logged In user's friend
                     });
                     hubConnection.on("FriendRequestAcceptOrDenyNotification", (message) => {
                         console.log(message)
-                        dispatch(getUserFriends({userId: loggedInUser.userId, Blocked: false })) // get current Logged In user's friend
+                        dispatch(getUserFriends({ userId: loggedInUser.userId, Blocked: false })) // get current Logged In user's friend
                     });
 
                 })
-                .catch(e => {
-                    dispatch(updateHubConnectionState({ connectionState: hubConnection.state }))
+                .catch(e => {                
                     //console.log("-----signalr error-----", e)
                 });
         }
@@ -128,7 +127,7 @@ export function Chat() {
     }
     //console.log(messageHistory, messageHistory[friendUserId], friendUserId, "messageHistory ,messageHistory[friendUserId], friendUserId at bottom")
 
-    const friendRequestCount = userFriends.data?.filter(e => e.friendStatus === FriendStatusKey.Requested)?.length ;
+    const friendRequestCount = userFriends.data?.filter(e => e.friendStatus === FriendStatusKey.Requested)?.length;
 
     return (
         <>
@@ -207,7 +206,7 @@ export function Chat() {
                         }
                         {
                             friendMenuTab === MenuTabs.Tab2 && userFriends.data?.filter(e => e.friendStatus === FriendStatusKey.Requested)?.map(e => (
-                                <div key={e.friendUserId} className="border-bottom py-1"> 
+                                <div key={e.friendUserId} className="border-bottom py-1">
                                     <FriendInfoRow {...e} />
                                     <AddFriendButtons {...e} />
                                 </div>

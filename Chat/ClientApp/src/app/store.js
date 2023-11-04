@@ -3,7 +3,7 @@
 import userReducer from './User/userSlice'
 import searchFriendReducer from './User/searchFriendSlice'
 import userFriendReducer from './UserFriend/userFriendSlice'
-//import { userFriendApi } from "./api/userFriendApi";
+import hubConnectionReducer from "./HubConnection/useHubConnectionSlice";
 
 import { doSignIn } from '../app/User/userSlice'
 
@@ -11,8 +11,10 @@ export default configureStore({
     reducer: {
         user: userReducer,
         searchFriend: searchFriendReducer,
-        userFriend: userFriendReducer
+        userFriend: userFriendReducer,
+        hubConnection: hubConnectionReducer
     },
+    middleware: (getDefaultMiddleware) => getDefaultMiddleware(),
     //middleware: (getDefaultMiddleware) =>
     //    getDefaultMiddleware().concat(refreshToken),
 })

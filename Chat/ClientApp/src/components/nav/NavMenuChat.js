@@ -9,6 +9,7 @@ import { Logo } from '../logo/Logo'
 
 export function NavMenuChat() {
     const user = useSelector(state => state.user)
+    const { data: hubConnection } = useSelector(state => state.hubConnection)
 
     const location = useLocation();
 
@@ -25,12 +26,12 @@ export function NavMenuChat() {
                         {user.info.name === "" ? user.userId : user.info.name}
                     </span>
                     {
-                        !!user?.hubConnectionState &&
+                        !!hubConnection &&
                         (
-                            <span>
-                                {(user?.hubConnectionState === HubConnectionState.Connecting || user?.hubConnectionState === HubConnectionState.Reconnecting) && "Connecting..."}
-                                {user?.hubConnectionState === HubConnectionState.Connected && <span title="online"><GoCheckCircleFill style={{ color: 'green', fontSize: '15' }} /> </span>}
-                                {user?.hubConnectionState === HubConnectionState.Disconnected && <span title="offline"><GoCheckCircleFill /></span>}
+                            <span> {hubConnection.state }
+                                {(hubConnection.state === HubConnectionState.Connecting || hubConnection.state === HubConnectionState.Reconnecting) && "Connecting..."}
+                                {hubConnection.state === HubConnectionState.Connected && <span title="online"><GoCheckCircleFill style={{ color: 'green', fontSize: '15' }} /> </span>}
+                                {hubConnection.state === HubConnectionState.Disconnected && <span title="offline"><GoCheckCircleFill /></span>}
                             </span>
                         )
                     }

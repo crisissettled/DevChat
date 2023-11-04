@@ -25,7 +25,6 @@ export const userSlice = createSlice({
         isSignedIn: null,
         token: null,
         userId: null,
-        hubConnectionState:"",
         info: {
             "userId": "",
             "name": "",
@@ -50,9 +49,6 @@ export const userSlice = createSlice({
             state.isSignedIn = false;
             state.token = "";
             state.userId = "";
-        },
-        updateHubConnectionState(state, { payload }) {
-            state.hubConnectionState = payload?.connectionState
         }
 
     },
