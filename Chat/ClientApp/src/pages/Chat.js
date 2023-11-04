@@ -1,72 +1,78 @@
-﻿import React, { useState, useEffect, useRef } from 'react'
-import { HubConnectionBuilder, HttpTransportType, HubConnectionState, LogLevel } from '@microsoft/signalr';
+﻿import React, { useState, useEffect, useContext, useRef } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
 import { Link } from 'react-router-dom';
+import { HubConnectionBuilder, HttpTransportType, HubConnectionState,LogLevel } from '@microsoft/signalr';
 
 import { updateHubConnectionState } from '../app/User/userSlice'
 import { getUserFriends } from '../app/UserFriend/userFriendSlice'
 import { FriendStatusKey, MenuTabs } from '../utils/Constants'
 import { FriendInfoRow } from '../components/friend/FriendInfoRow';
 import { AddFriendButtons } from '../components/friend/AddFriendButtons';
+import HubConnectionContext from '../utils/hubConnectionContext';
+import { ApiEndPoints } from "../utils/Constants";
+import { refreshToken } from '../utils/httpFetch';
 
 import styles from './chat.module.css'
-import { refreshToken } from '../utils/httpFetch';
+
 
 export function Chat() {
     const dispatch = useDispatch();
     const userFriends = useSelector(state => state.userFriend)
     const loggedInUser = useSelector(state => state.user)
+    const { hubConnection, setHubConnection } = useContext(HubConnectionContext);
 
     const [friendMenuTab, setfriendMenuTab] = useState(MenuTabs.Tab1)
     const [friendUserId, setFriendUserId] = useState(null)
-
-    const [hubConnection, sethubConnection] = useState(null);
     const [messageToSend, setMessageToSend] = useState(null);
     const [messageHistory, setMessageHistory] = useState({});
 
-    const chatBox = useRef(null)
-
-    const hubChatEndPoint = '/hubs/chat'
+    const chatBox = useRef(null) 
 
     useEffect(() => {
-        const con = new HubConnectionBuilder()
-            .withUrl(`${hubChatEndPoint}`, {
-                accessTokenFactory: () => {
-                    //return fetch(ApiEndPoints.USER_REFRESH_SIGN_IN, {
-                    //    method: "PUT",
-                    //    credentials: "same-origin"
-                    //})
-                    //    .then(res => res.json())
-                    //    .then(json => json?.data)
-                    //    .then(data => data?.token)
-
-                    ////if (response.status !== 401) {
-                    ////    var signInState = await ;
-                    ////    dispatch(doSignIn({ signedIn: true, token: signInState?.data, userId: signInState?.data.userId }))
-                    ////}
-
-                    //return loggedInUser?.token;
-
-                    return refreshToken()
-                        .then(res => res.json())
-                        .then(json => json?.data)
-                        .then(result => result?.token)
-
-                },
-                skipNegotiation: true,
-                transport: HttpTransportType.WebSockets
-            })
-            .configureLogging(LogLevel.Information)
-            .withAutomaticReconnect()
-            .build();
-
-        sethubConnection(con);
-
         dispatch(getUserFriends({ userId: loggedInUser.userId, Blocked: false })) // get current Logged In user's friend
-
-        return () => { con.stop() }
+   
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+ 
+
+    useEffect(() => {
+        if (loggedInUser.isSignedIn && !hubConnection) {
+            const con = new HubConnectionBuilder()
+                .withUrl(ApiEndPoints.HUB_CHAT, {
+                    accessTokenFactory: () => {
+                        //return fetch(ApiEndPoints.USER_REFRESH_SIGN_IN, {
+                        //    method: "PUT",
+                        //    credentials: "same-origin"
+                        //})
+                        //    .then(res => res.json())
+                        //    .then(json => json?.data)
+                        //    .then(data => data?.token)
+
+                        ////if (response.status !== 401) {
+                        ////    var signInState = await ;
+                        ////    dispatch(doSignIn({ signedIn: true, token: signInState?.data, userId: signInState?.data.userId }))
+                        ////}
+
+                        //return loggedInUser?.token;
+
+                        return refreshToken()
+                            .then(res => res.json())
+                            .then(json => json?.data)
+                            .then(result => result?.token)
+
+                    },
+                    skipNegotiation: true,
+                    transport: HttpTransportType.WebSockets
+                })
+                .configureLogging(LogLevel.Information)
+                .withAutomaticReconnect()
+                .build();
+
+            setHubConnection(con);
+
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
 
     useEffect(() => {
         if (hubConnection) {

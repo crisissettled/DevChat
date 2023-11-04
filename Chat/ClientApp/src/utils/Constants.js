@@ -28,6 +28,7 @@ export const MenuTabs = {
 
 
 export const ApiEndPoints = {
+    HUB_CHAT: '/hubs/chat',
     USER_SIGN_IN: "/api/User/SignIn",
     USER_REFRESH_SIGN_IN: "/api/User/RefreshSignIn",
     USER_SIGN_CHAT_OUT: "/api/user/signchatout",

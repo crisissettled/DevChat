@@ -1,21 +1,21 @@
-import React, { Component } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import AppRoutes from './AppRoutes';
 import './custom.css';
 
-export default class App extends Component {
-    static displayName = App.name;
+import HubConnectionContext from './utils/hubConnectionContext'
+import { useState } from 'react';
 
-    render() {
-        return (
-             
-                <Routes>
-                    {AppRoutes.map((route, index) => {
-                        const { element, ...rest } = route;
-                        return <Route key={index} {...rest} element={element} />;
-                    })}
-                </Routes>
-          
-        );
-    }
+export default function App() {
+    const [hubConnection, setHubConnection] = useState(null);
+
+    return (
+        <HubConnectionContext.Provider value={{ hubConnection, setHubConnection }}>
+        <Routes>
+            {AppRoutes.map((route, index) => {
+                const { element, ...rest } = route;
+                return <Route key={index} {...rest} element={element} />;
+            })}
+            </Routes>
+        </HubConnectionContext.Provider>
+    );
 }
