@@ -22,7 +22,7 @@ export function NavMenuChat() {
                 <span className="me-2"><Logo width={50} height={30} fontSzie={"fs-6"} /></span>
                 <NavbarBrand tag={Link} to="/"> Welcome
                     <span className="text-capitalize mx-2">
-                        {user.info.name === "" ? user.userId : user.info.name}
+                        {!user.data?.name ? user.userId : user.data?.name}
                     </span>
                     {
                         !!user?.hubConnectionState &&

@@ -10,13 +10,21 @@ export const userSignIn = createAsyncThunk(
     }
 )
 
-
 export const userSignOut = createAsyncThunk(
     ApiEndPoints.USER_SIGN_CHAT_OUT,
     async (data, thunkAPI) => {
         let response = await httpFetch(ApiEndPoints.USER_SIGN_CHAT_OUT, "PUT", thunkAPI, data);
         return response.json();
     }     
+)
+
+
+export const getUserInfo = createAsyncThunk(
+    ApiEndPoints.USER_GET_USER_INFO,
+    async (userId, thunkAPI) => {
+        let response = await httpFetch(`${ApiEndPoints.USER_GET_USER_INFO}?userId=${userId}`, "GET", thunkAPI);
+        return response.json();
+    }
 )
 
 export const userSlice = createSlice({
@@ -26,18 +34,7 @@ export const userSlice = createSlice({
         token: null,
         userId: null,
         hubConnectionState:"",
-        info: {
-            "userId": "",
-            "name": "",
-            "email": "",
-            "password": "",
-            "newPassword": "",           
-            "gender": 0,
-            "province": "",
-            "city": "",
-            "address": "",
-            "phone": ""           
-        }
+        data: null
     },
     reducers: {
         doSignIn: (state, action) => {          
@@ -86,6 +83,22 @@ export const userSlice = createSlice({
             state.token = ""
             state.isSignedIn = false
             state.userId = ""
+            if (action.payload) {
+                state.error = action.payload
+            } else {
+                state.error = action.error
+            }
+
+        }).addCase(getUserInfo.pending, (state) => {
+            state.status = FetchStatus.PENDING
+
+        }).addCase(getUserInfo.fulfilled, (state, { payload}) => {
+            state.status = FetchStatus.FULFILLED            
+            state.data = payload?.data
+
+        }).addCase(getUserInfo.rejected, (state, action) => {
+            state.status = FetchStatus.REJECTED
+         
             if (action.payload) {
                 state.error = action.payload
             } else {

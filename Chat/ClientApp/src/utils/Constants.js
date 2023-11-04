@@ -1,5 +1,11 @@
 ﻿export const RESULT_CODE_SUCCESS = 2000
 
+export const Gender = {
+    "0": "Unknown",
+    "1": "Male",
+    "2": "Female"
+}
+
 export const FetchStatus = {
     PENDING: "pending",
     FULFILLED: "fulfilled",
@@ -32,6 +38,7 @@ export const ApiEndPoints = {
     USER_SIGN_IN: "/api/User/SignIn",
     USER_REFRESH_SIGN_IN: "/api/User/RefreshSignIn",
     USER_SIGN_CHAT_OUT: "/api/user/signchatout",
+    USER_GET_USER_INFO: "/api/user/GetUserInfo",
     SEARCH_FRIEND: '/api/User/SearchFriend',
     ADD_USER_FRIEND: '/api/UserFriend/AddUserFriend',
     GET_USER_FRIENDS: '/api/UserFriend/GetUserFriends',

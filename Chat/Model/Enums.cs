@@ -10,9 +10,9 @@
 
     public enum Gender
     {
-        unknown,
-        male,
-        female
+        unknown = 0,
+        male = 1,
+        female = 2
     }
 
     public enum UserFriendMessageType {

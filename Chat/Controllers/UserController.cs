@@ -55,6 +55,15 @@ namespace Chat.Controllers {
             return Ok(new ResponseResult(ResultCode.Success, IsDevelopment));
         }
 
+
+        [HttpGet]
+        [Authorize]
+        public async Task<ActionResult> GetUserInfo(string userId) {
+            var user = await _mongoDbUserService.GetUserAsync(userId);
+
+            return Ok(new ResponseResult(ResultCode.Success, IsDevelopment) { data = user});
+        }
+
         [HttpPut]
         [Authorize]
         public async Task<ActionResult> UpdateProfile(
@@ -90,8 +99,9 @@ namespace Chat.Controllers {
 
             await _mongoDbUserService.UpdateUserAsync(newUser);
 
+            var user = await _mongoDbUserService.GetUserAsync(updateProfileRequest.UserId);
 
-            return Ok(new ResponseResult(ResultCode.Success, IsDevelopment));
+            return Ok(new ResponseResult(ResultCode.Success, IsDevelopment) { data = user });
         }
 
         [HttpPut]
