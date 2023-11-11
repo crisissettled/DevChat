@@ -12,8 +12,9 @@ namespace Chat.Utils.MongoDb.ChatMessageService {
             CreateUniqueIndexOnFromUserIdAndToUserId();
         }
 
-        public async Task CreateChatMessage(ChatMessage chatMessage) {
+        public async Task<ChatMessage> AddChatMessage(ChatMessage chatMessage) {
             await _chatMessageCollection.InsertOneAsync(chatMessage);
+            return chatMessage;
         }
 
         public async Task UpdateChatMessageIsRead(string id) {

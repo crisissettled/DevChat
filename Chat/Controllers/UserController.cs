@@ -12,20 +12,17 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Chat.Controllers {
 
-    public class UserController : ApiControllerBase {
-        private readonly bool IsDevelopment;
+    public class UserController : ApiControllerBase {      
         private readonly IMongoDbUserService _mongoDbUserService;
         private readonly IMongoDbUserSessionStateService _mongoDbUserSessionStateService;
-        private readonly IHttpContextAccessor _httpContextAccessor;
-
+  
         public UserController(IHostEnvironment env,
             IMongoDbUserService mongoDbUserService,
             IMongoDbUserSessionStateService mongoDbUserSessionStateService,
-            IHttpContextAccessor httpContextAccessor) : base(env) {
-            IsDevelopment = env.IsDevelopment();
+            IHttpContextAccessor httpContextAccessor
+            ) : base(env, httpContextAccessor) {    
             _mongoDbUserService = mongoDbUserService;
-            _mongoDbUserSessionStateService = mongoDbUserSessionStateService;
-            _httpContextAccessor = httpContextAccessor;
+            _mongoDbUserSessionStateService = mongoDbUserSessionStateService;     
         }
 
         [HttpPut]
@@ -52,7 +49,7 @@ namespace Chat.Controllers {
                 return ExceptionResult(ex);
             }
 
-            return Ok(new ResponseResult(ResultCode.Success, IsDevelopment));
+            return Ok(new ResponseResult(ResultCode.Success, _isDevelopment));
         }
 
 
@@ -70,7 +67,7 @@ namespace Chat.Controllers {
                 Address = user.Address,
             };
 
-            return Ok(new ResponseResult(ResultCode.Success, IsDevelopment) { data = userResponse });
+            return Ok(new ResponseResult(ResultCode.Success, _isDevelopment) { data = userResponse });
         }
         [HttpPut]
         [Authorize]
@@ -79,7 +76,7 @@ namespace Chat.Controllers {
         [FromServices] ICrypto crypto,
         UpdateUserInfoRequest updateUserInfoRequest) {
 
-            if (updateUserInfoRequest == null) return BadRequest(new ResponseResult(ResultCode.BadDataRequest, IsDevelopment));
+            if (updateUserInfoRequest == null) return BadRequest(new ResponseResult(ResultCode.BadDataRequest, _isDevelopment));
 
             var resultValidate = await validator.ValidateAsync(updateUserInfoRequest);
             if (!resultValidate.IsValid) {
@@ -118,7 +115,7 @@ namespace Chat.Controllers {
                 Address = user.Address,
             };
 
-            return Ok(new ResponseResult(ResultCode.Success, IsDevelopment) { data = userResponse });
+            return Ok(new ResponseResult(ResultCode.Success, _isDevelopment) { data = userResponse });
         }
 
         [HttpPut]
@@ -134,7 +131,7 @@ namespace Chat.Controllers {
             }
 
             var user = await _mongoDbUserService.GetUserAsync(signInRequest.UserId);
-            if (user == null || user.Password != crypto.SHA256Encrypt(signInRequest.Password)) return Unauthorized(new ResponseResult(ResultCode.Failed, IsDevelopment));
+            if (user == null || user.Password != crypto.SHA256Encrypt(signInRequest.Password)) return Unauthorized(new ResponseResult(ResultCode.Failed, _isDevelopment));
 
             var token = Jwt.GenerateAccessToken(signInRequest.UserId);
             var refreshToken = Jwt.GenerateRefreshToken(signInRequest.UserId);
@@ -146,19 +143,19 @@ namespace Chat.Controllers {
             options.HttpOnly = true;
             options.SameSite = SameSiteMode.Strict;
             if (signInRequest.KeepLoggedIn == true) options.Expires = DateTime.Now.AddDays(Constants.SESSION_KEEP_LOGGED_IN_DAYS); // 30 days keep logged in
-            _httpContextAccessor.HttpContext!.Response.Cookies.Append(Constants.SESSION_COOKIE_KEY, refreshToken, options);
+            _httpContext!.Response.Cookies.Append(Constants.SESSION_COOKIE_KEY, refreshToken, options);
 
-            return Ok(new ResponseResult(ResultCode.Success, IsDevelopment) { data = new { token, user.UserId } });
+            return Ok(new ResponseResult(ResultCode.Success, _isDevelopment) { data = new { token, user.UserId } });
         }
 
 
         [HttpPut]
         public async Task<ActionResult> RefreshSignIn() {
-            var curRefreshToken = _httpContextAccessor.HttpContext!.Request.Cookies[Constants.SESSION_COOKIE_KEY];
-            if (curRefreshToken == null) return Unauthorized(new ResponseResult(ResultCode.UnAutherized, IsDevelopment));
+            var curRefreshToken = _httpContext!.Request.Cookies[Constants.SESSION_COOKIE_KEY];
+            if (curRefreshToken == null) return Unauthorized(new ResponseResult(ResultCode.UnAutherized, _isDevelopment));
 
             var curUserSessionState = await _mongoDbUserSessionStateService.GetUserSessionState(curRefreshToken);
-            if (curUserSessionState == null) return Unauthorized(new ResponseResult(ResultCode.UnAutherized, IsDevelopment));
+            if (curUserSessionState == null) return Unauthorized(new ResponseResult(ResultCode.UnAutherized, _isDevelopment));
 
             if (curUserSessionState.UserId != null && curRefreshToken.Substring(0, curUserSessionState.UserId.Length) == curUserSessionState.UserId && curUserSessionState.IsSignedOut == false) {
                 var token = Jwt.GenerateAccessToken(curUserSessionState.UserId);
@@ -178,28 +175,28 @@ namespace Chat.Controllers {
                 options.HttpOnly = true;
                 options.SameSite = SameSiteMode.Strict;
                 if (curUserSessionState.KeepLoggedIn == true) options.Expires = DateTime.Now.AddDays(Constants.SESSION_KEEP_LOGGED_IN_DAYS); // 30 days keep logged in
-                _httpContextAccessor.HttpContext!.Response.Cookies.Append(Constants.SESSION_COOKIE_KEY, refreshToken, options);
+                _httpContext!.Response.Cookies.Append(Constants.SESSION_COOKIE_KEY, refreshToken, options);
 
-                return Ok(new ResponseResult(ResultCode.Success, IsDevelopment) { data = new { token, curUserSessionState.UserId } });
+                return Ok(new ResponseResult(ResultCode.Success, _isDevelopment) { data = new { token, curUserSessionState.UserId } });
             }
 
-            return Unauthorized(new ResponseResult(ResultCode.UnAutherized, IsDevelopment));
+            return Unauthorized(new ResponseResult(ResultCode.UnAutherized, _isDevelopment));
         }
 
         [HttpPut]
         [Authorize]
         public async Task<ActionResult> SignChatOut() {
-            var curRefreshToken = _httpContextAccessor.HttpContext!.Request.Cookies[Constants.SESSION_COOKIE_KEY];
+            var curRefreshToken = _httpContext!.Request.Cookies[Constants.SESSION_COOKIE_KEY];
             if (curRefreshToken != null) {
                 var curUserSessionState = await _mongoDbUserSessionStateService.GetUserSessionState(curRefreshToken);
                 await _mongoDbUserSessionStateService.UpdateSignOut(curUserSessionState.UserId, true);
 
                 CookieOptions options = new CookieOptions();
                 options.Expires = DateTime.Now.AddDays(-100);
-                _httpContextAccessor.HttpContext!.Response.Cookies.Append(Constants.SESSION_COOKIE_KEY, "", options);
+               _httpContext!.Response.Cookies.Append(Constants.SESSION_COOKIE_KEY, "", options);
             }
 
-            return Ok(new ResponseResult(ResultCode.Success, IsDevelopment));
+            return Ok(new ResponseResult(ResultCode.Success, _isDevelopment));
         }
 
 

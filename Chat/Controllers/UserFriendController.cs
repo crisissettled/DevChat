@@ -15,26 +15,22 @@ namespace Chat.Controllers {
 
     [Authorize]
     public class UserFriendController : ApiControllerBase {
-
-        private readonly bool IsDevelopment;
         private readonly IMongoDbUserFriendService _mongoDbUserFriendService;
         private readonly IMongoDbUserService _mongoDbUserService;
         private readonly IHubContext<ChatHub> _hubContext;
         private readonly IChatSessions _chatSessions;
-        private readonly IHttpContextAccessor _httpContextAccessor;
+
 
         public UserFriendController(IHostEnvironment env,
             IMongoDbUserFriendService mongoDbUserFriendService,
             IMongoDbUserService mongoDbUserService,
             IHubContext<ChatHub> hubContext,
             IChatSessions chatSessions,
-            IHttpContextAccessor httpContextAccessor) : base(env) {
-            IsDevelopment = env.IsDevelopment();
+            IHttpContextAccessor httpContextAccessor) : base(env, httpContextAccessor) {
             _mongoDbUserFriendService = mongoDbUserFriendService;
             _mongoDbUserService = mongoDbUserService;
             _hubContext = hubContext;
             _chatSessions = chatSessions;
-            _httpContextAccessor = httpContextAccessor;
         }
 
         [HttpPut]
@@ -47,10 +43,10 @@ namespace Chat.Controllers {
                 return ValidationResult(resultValidate);
             }
 
-            if (userFriendRequest == null) return BadRequest(new ResponseResult(ResultCode.BadDataRequest, IsDevelopment));
+            if (userFriendRequest == null) return BadRequest(new ResponseResult(ResultCode.BadDataRequest, _isDevelopment));
 
             var userFriendResponseList = await GetUserFriend(userFriendRequest.UserId, userFriendRequest.Blocked);
-            var result = new ResponseResult(ResultCode.Success) {
+            var result = new ResponseResult(ResultCode.Success, _isDevelopment) {
                 data = userFriendResponseList
             };
 
@@ -90,14 +86,14 @@ namespace Chat.Controllers {
                 await _mongoDbUserFriendService.AddUserFriend(userFriend);
 
                 var userFriendResponseList = await GetUserFriend(addUserFriendRequest.UserId, null);
-                var result = new ResponseResult(ResultCode.Success) {
+                var result = new ResponseResult(ResultCode.Success, _isDevelopment) {
                     data = userFriendResponseList
                 };
 
 
                 var connectionId = _chatSessions.getConnectionId(addUserFriendRequest.FriendUserId);
-              
-                if(connectionId != null) {               
+
+                if (connectionId != null) {
                     await _hubContext.Clients.Client(connectionId).SendAsync("FriendRequestNotification", "Friend Request Notification");
                 }
 
@@ -131,7 +127,7 @@ namespace Chat.Controllers {
                 addUserFriendMessageRequest.MessageType);
 
 
-            return Ok(new ResponseResult(ResultCode.Success));
+            return Ok(new ResponseResult(ResultCode.Success, _isDevelopment));
 
         }
 
@@ -151,7 +147,7 @@ namespace Chat.Controllers {
                 );
 
             var userFriendResponseList = await GetUserFriend(acceptOrDenyFriendRequest.UserId);
-            var result = new ResponseResult(ResultCode.Success) {
+            var result = new ResponseResult(ResultCode.Success, _isDevelopment) {
                 data = userFriendResponseList
             };
 

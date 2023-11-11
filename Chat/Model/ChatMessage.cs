@@ -13,7 +13,7 @@ namespace Chat.Model {
 
         [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
         public DateTime SendAt { get; set; } = DateTime.Now;
-        public bool IsRead { get; set; }
+        public bool IsRead { get; set; } = false;
 
         public ChatMessage(string fromUserId, string toUserId, string message) {
             FromUserId = fromUserId;

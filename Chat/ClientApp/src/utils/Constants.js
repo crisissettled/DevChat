@@ -44,5 +44,13 @@ export const ApiEndPoints = {
     SEARCH_FRIEND: '/api/User/SearchFriend',
     ADD_USER_FRIEND: '/api/UserFriend/AddUserFriend',
     GET_USER_FRIENDS: '/api/UserFriend/GetUserFriends',
-    ACCEPT_OR_DENY_FRIENDS: '/api/UserFriend/AcceptOrDenyFriend'
+    ACCEPT_OR_DENY_FRIENDS: '/api/UserFriend/AcceptOrDenyFriend',
+    SEND_CHAT_MESSAGE:"/api/ChatMessage/SendMessage"
+}
+
+export const IdxedDbConfig = {
+    DB_VERSION: 1,
+    DB_NAME: "chat",
+    STORE_MESSAGE: "message",
+    STORE_USER_INFO : "xkfr23fsdfalwqjqwe"
 }

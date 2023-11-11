@@ -19,16 +19,18 @@ namespace Chat.signalR {
 
             return base.OnConnectedAsync();
         }
-        public Task SendMessage(string toUserId, string message) {          
-            if(string.IsNullOrWhiteSpace(this.Context.UserIdentifier)) return Task.CompletedTask;
+
+        //---- use [hubContext] in Controller instead ----
+        //public Task SendMessage(string toUserId, string message) {          
+        //    if(string.IsNullOrWhiteSpace(this.Context.UserIdentifier)) return Task.CompletedTask;
             
-            try {
-                return this.Clients.Users(toUserId).ReceiveMessage(this.Context.UserIdentifier, message);
-            }
-            catch (Exception ex) {
-                return Task.FromException(ex);
-            }            
-        }
+        //    try {
+        //        return this.Clients.Users(toUserId).ReceiveMessage(this.Context.UserIdentifier, message);
+        //    }
+        //    catch (Exception ex) {
+        //        return Task.FromException(ex);
+        //    }            
+        //}
 
         public override Task OnDisconnectedAsync(Exception? exception) {           
             _chatSessions.RemoveSession(this.Context.ConnectionId, this.Context.UserIdentifier);

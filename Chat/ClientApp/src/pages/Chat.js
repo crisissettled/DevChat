@@ -5,6 +5,7 @@ import { HubConnectionBuilder, HttpTransportType, HubConnectionState,LogLevel } 
 
 import { updateHubConnectionState } from '../app/User/userSlice'
 import { getUserFriends } from '../app/UserFriend/userFriendSlice'
+import { sendChatMessage } from '../app/ChatMessage/chatMessageSlice'
 import { FriendStatusKey, MenuTabs } from '../utils/Constants'
 import { FriendInfoRow } from '../components/friend/FriendInfoRow';
 import { AddFriendButtons } from '../components/friend/AddFriendButtons';
@@ -12,7 +13,7 @@ import HubConnectionContext from '../utils/hubConnectionContext';
 import { ApiEndPoints } from "../utils/Constants";
 import { refreshToken } from '../utils/httpFetch';
 
-import styles from './chat.module.css'
+import styles from './chat.module.css' 
 
 
 export function Chat() {
@@ -28,7 +29,7 @@ export function Chat() {
 
     const chatBox = useRef(null) 
 
-    useEffect(() => {
+    useEffect(() => {     
         dispatch(getUserFriends({ userId: loggedInUser.userId, Blocked: false })) // get current Logged In user's friend
    
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -116,15 +117,17 @@ export function Chat() {
         console.log(friendUserId, messageToSend, "friendUserId - messageout")
         if (messageToSend === null || friendUserId === null) return;
 
-        hubConnection.invoke("SendMessage", friendUserId, messageToSend).then(res => {
-            setMessageHistory(prev => {
-                const currentChatMessage = !prev[friendUserId] === true ? [] : prev[friendUserId]
-                return { ...prev, [friendUserId]: [...currentChatMessage, { user: loggedInUser.userId, message: messageToSend }] }
-            });
-            setMessageToSend(null);
-        }).catch(function (err) {
-            console.error(err.toString(), "signalr error");
-        });
+        dispatch(sendChatMessage({ toUserId:friendUserId, message:messageToSend }));
+
+        //hubConnection.invoke("SendMessage", friendUserId, messageToSend).then(res => {
+        //    setMessageHistory(prev => {
+        //        const currentChatMessage = !prev[friendUserId] === true ? [] : prev[friendUserId]
+        //        return { ...prev, [friendUserId]: [...currentChatMessage, { user: loggedInUser.userId, message: messageToSend }] }
+        //    });
+        //    setMessageToSend(null);
+        //}).catch(function (err) {
+        //    console.error(err.toString(), "signalr error");
+        //});
     }
 
     const handleEnterKeyStroke = (e) => {
