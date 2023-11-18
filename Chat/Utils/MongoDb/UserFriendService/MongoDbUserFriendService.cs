@@ -13,7 +13,7 @@ namespace Chat.Utils.MongoDb.UserFirendService {
         public async Task<List<UserFriend>> GetUserFriendList(string UserId) {
             var filter = Builders<UserFriend>.Filter.Eq(x => x.UserId, UserId) | Builders<UserFriend>.Filter.Eq(x => x.FriendUserId, UserId);
 
-            return await _userFriendCollection.Find(filter, new FindOptions() { Collation = new Collation("en", strength: CollationStrength.Primary) }).ToListAsync();
+            return await _userFriendCollection.Find(filter, _caseInsensitiveFindOptions).ToListAsync();
         }
 
         public async Task AddUserFriend(UserFriend userFriend) {

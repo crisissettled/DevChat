@@ -5,7 +5,7 @@ import { HubConnectionBuilder, HttpTransportType, HubConnectionState, LogLevel }
 
 import { updateHubConnectionState } from '../app/User/userSlice'
 import { getUserFriends } from '../app/UserFriend/userFriendSlice'
-import { sendChatMessage } from '../app/ChatMessage/chatMessageSlice'
+import { addMessage, loadMessage, sendChatMessage } from '../app/ChatMessage/chatMessageSlice'
 import { FriendStatusKey, MenuTabs } from '../utils/Constants'
 import { FriendInfoRow } from '../components/friend/FriendInfoRow';
 import { AddFriendButtons } from '../components/friend/AddFriendButtons';
@@ -21,34 +21,27 @@ export function Chat() {
     const dispatch = useDispatch();
     const userFriends = useSelector(state => state.userFriend)
     const loggedInUser = useSelector(state => state.user)
+    const chatMessage = useSelector(state => state.chatMessage)
     const { hubConnection, setHubConnection } = useContext(HubConnectionContext);
 
     const [friendMenuTab, setfriendMenuTab] = useState(MenuTabs.Tab1)
     const [friendUserId, setFriendUserId] = useState(null)
     const [messageToSend, setMessageToSend] = useState(null);
-    const [messageHistory, setMessageHistory] = useState({});
+  /*  const [messageHistory, setMessageHistory] = useState({});*/
 
     const chatBox = useRef(null)
+
+    console.log(chatMessage,"chatMessage")
 
     useEffect(() => {
         dispatch(getUserFriends({ userId: loggedInUser.userId, Blocked: false })) // get current LoggedIn user's friend
 
         //load chat message from indexedDB
-        getDataFromIdxedDb().then(messages => {
-            const messageHistoryObj = {};
-            for (const msgItem of messages) {
-                if (msgItem.fromUserId !== loggedInUser.userId) {
-                    if (!messageHistoryObj[msgItem.fromUserId]) messageHistoryObj[msgItem.fromUserId] = [];
-                    messageHistoryObj[msgItem.fromUserId].push({ user: msgItem.fromUserId , message: msgItem.message });
-                } else {
-                    if (!messageHistoryObj[msgItem.toUserId]) messageHistoryObj[msgItem.toUserId] = [];
-                    messageHistoryObj[msgItem.toUserId].push({ user: msgItem.fromUserId, message: msgItem.message });
-                }
-            }
-
-            setMessageHistory(messageHistoryObj);
-        });
-
+        if (chatMessage.data === null) {
+            getDataFromIdxedDb().then(messages => {
+                dispatch(loadMessage({ data: messages, loggedInUser }));
+            });
+        }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -83,11 +76,8 @@ export function Chat() {
             hubConnection.start()
                 .then(_ => {
                     dispatch(updateHubConnectionState({ connectionState: hubConnection.state }))
-                    hubConnection.on('ReceiveMessage', async(messageId,fromUserId, message) => {
-                        setMessageHistory(prev => {
-                            const currentChatMessage = !prev[fromUserId] === true ? [] : prev[fromUserId]                         
-                            return { ...prev, [fromUserId]: [...currentChatMessage, { user: fromUserId, message }] }
-                        });                  
+                    hubConnection.on('ReceiveMessage', async (messageId, fromUserId, message) => {                       
+                        dispatch(addMessage({ user: fromUserId, message }));
 
                         await addDataToIdxedDb({ id: messageId, fromUserId, toUserId: loggedInUser.userId, message, messageType: 0, isRead: false });
                     });
@@ -111,19 +101,11 @@ export function Chat() {
     //show latest chat message in view
     useEffect(() => {
         chatBox?.current?.lastElementChild?.scrollIntoView({ behavior: 'smooth' })
-    }, [messageHistory, friendUserId])
+    }, [chatMessage, friendUserId])
 
     const handleSendMessage = _ => {
-
         if (messageToSend === null || friendUserId === null) return;
-
-        dispatch(sendChatMessage({ toUserId: friendUserId, message: messageToSend }));
-
-        setMessageHistory(prev => {
-            const currentChatMessage = !prev[friendUserId] === true ? [] : prev[friendUserId]
-            return { ...prev, [friendUserId]: [...currentChatMessage, { user: loggedInUser.userId, message: messageToSend }] }
-        });
-        setMessageToSend(null);
+        dispatch(sendChatMessage({ toUserId: friendUserId, message: messageToSend }));       
     }
 
     const handleEnterKeyStroke = (e) => {
@@ -145,7 +127,7 @@ export function Chat() {
                     </div>
                     <div className={styles.chatbox} style={{ height: 300, overflowY: 'scroll' }} ref={chatBox}>
                         {
-                            messageHistory[friendUserId]?.map((item, index) =>
+                            chatMessage?.data && chatMessage?.data[friendUserId]?.map((item, index) =>
                                 <pre key={index} className="m-1">
                                     {item.user === loggedInUser.userId ?
                                         (
@@ -169,7 +151,7 @@ export function Chat() {
                     <p>
                         <textarea placeholder="Enter message"
                             disabled={!friendUserId}
-                            className="rounded w-100" style={{ minHeight: 100 }}
+                            className="rounded w-100 px-2" style={{ minHeight: 100 }}
                             onChange={e => setMessageToSend(e.target.value)}
                             value={messageToSend === null ? "" : messageToSend}
                             onKeyDown={e => handleEnterKeyStroke(e)}
@@ -205,8 +187,8 @@ export function Chat() {
                         {
 
                             friendMenuTab === MenuTabs.Tab1 && userFriends.data?.filter(e => e.friendStatus === FriendStatusKey.Accepted)?.map(e => (
-                                <div key={e.friendUserId} className="border-bottom rounded px-2 py-1" style={{ fontWeight: friendUserId === e.friendUserId ? "600" : "100" } }>
-                                    <FriendInfoRow {...e} allowChat={true} setFriendUserIdToChat={setFriendUserId} selectedFriendId={ friendUserId} />
+                                <div key={e.friendUserId} className="border-bottom rounded px-2 py-1" style={{ fontWeight: friendUserId === e.friendUserId ? "600" : "100" }}>
+                                    <FriendInfoRow {...e} allowChat={true} setFriendUserIdToChat={setFriendUserId} selectedFriendId={friendUserId} />
                                 </div>
                             ))
 

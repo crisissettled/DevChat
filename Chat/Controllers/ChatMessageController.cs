@@ -29,6 +29,20 @@ namespace Chat.Controllers {
         }
 
 
+        [HttpGet]
+        public async Task<ActionResult> GetUserChatMessage() {
+            if (_loggedInUserId != null) {
+                var chatMessages = await _mongoDbChatMessageSerivce.GetUserChatMessages(_loggedInUserId);
+
+                return Ok(new ResponseResult(ResultCode.Success, _isDevelopment) {
+                        data = chatMessages.Select(x => new ChatMessageResponse(x.Id ?? "", x.FromUserId, x.ToUserId, x.Message, x.SendAt.ToString(), x.IsRead))
+                });
+            }
+
+            return Ok(new ResponseResult(ResultCode.Failed, _isDevelopment));
+        }
+
+
         [HttpPost]
         public async Task<ActionResult> SendMessage(
             ChatMessageRequest chatRequest,
@@ -45,17 +59,16 @@ namespace Chat.Controllers {
 
             var connectionId = _chatSessions.getConnectionId(chatRequest.toUserId);
 
-            var loggedInUserId = _httpContext?.Items["UserId"]?.ToString();
-            if (loggedInUserId != null) {
-                var chatMessage = new ChatMessage(loggedInUserId, chatRequest.toUserId, chatRequest.message);
+            if (_loggedInUserId != null) {
+                var chatMessage = new ChatMessage(_loggedInUserId, chatRequest.toUserId, chatRequest.message);
                 var savedChatMessage = await _mongoDbChatMessageSerivce.AddChatMessage(chatMessage);
 
                 if (connectionId != null) {
-                    await _hubContext.Clients.Client(connectionId).SendAsync("ReceiveMessage", savedChatMessage.Id, loggedInUserId, chatRequest.message);
+                    await _hubContext.Clients.Client(connectionId).SendAsync("ReceiveMessage", savedChatMessage.Id, _loggedInUserId, chatRequest.message);
                 }
                 if (savedChatMessage != null) {
                     return Ok(new ResponseResult(ResultCode.Success, _isDevelopment) {
-                        data = new ChatMessageResponse(savedChatMessage.Id??"", savedChatMessage.FromUserId, savedChatMessage.ToUserId, savedChatMessage.Message, savedChatMessage.SendAt.ToString(), savedChatMessage.IsRead)
+                        data = new ChatMessageResponse(savedChatMessage.Id ?? "", savedChatMessage.FromUserId, savedChatMessage.ToUserId, savedChatMessage.Message, savedChatMessage.SendAt.ToString(), savedChatMessage.IsRead)
                     });
                 } else {
                     return Ok(new ResponseResult(ResultCode.Failed, _isDevelopment) { message = "Save message failed" });
@@ -64,5 +77,6 @@ namespace Chat.Controllers {
                 return Ok(new ResponseResult(ResultCode.Failed, _isDevelopment) { message = "Invalid user, please re-login" });
             }
         }
+
     }
 }

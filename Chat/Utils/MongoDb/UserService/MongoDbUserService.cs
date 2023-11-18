@@ -17,7 +17,7 @@ namespace Chat.Utils.MongoDb.UserService {
         public async Task<User> GetUserAsync(string UserId) {
             var filter = Builders<User>.Filter.Eq(x => x.UserId, UserId);
             return await _userCollection
-                .Find(filter, new FindOptions() { Collation = new Collation("en", strength: CollationStrength.Primary) }) // Case-Insensitive query
+                .Find(filter, _caseInsensitiveFindOptions) // Case-Insensitive query
                 .FirstOrDefaultAsync();
         }
 

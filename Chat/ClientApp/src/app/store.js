@@ -3,7 +3,7 @@
 import userReducer from './User/userSlice'
 import searchFriendReducer from './User/searchFriendSlice'
 import userFriendReducer from './UserFriend/userFriendSlice'
-import chatMessageReducer from './UserFriend/userFriendSlice'
+import chatMessageReducer from './ChatMessage/chatMessageSlice'
 //import { userFriendApi } from "./api/userFriendApi";
 
 import { doSignIn } from '../app/User/userSlice'

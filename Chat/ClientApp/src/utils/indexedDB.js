@@ -90,7 +90,7 @@ export const addDataToIdxedDb = (data) => {
             const transaction = db.transaction(IdxedDbConfig.STORE_MESSAGE, "readwrite");
             const objectStoreRequest = transaction.objectStore(IdxedDbConfig.STORE_MESSAGE);
              
-            objectStoreRequest.add(data);
+            objectStoreRequest.put(data);
             objectStoreRequest.onsuccess = (event) => {
                 resolve("add_data_success");
             }
@@ -102,6 +102,36 @@ export const addDataToIdxedDb = (data) => {
         }
         dbOpenRequest.onerror = function (event) {
             let db = dbOpenRequest;     
+            reject(db.error);
+        };
+    });
+}
+
+export const addMultiDataItemToIdxedDb = (data) => {
+    return new Promise((resolve, reject) => {
+        const dbOpenRequest = indexedDB.open(IdxedDbConfig.DB_NAME, IdxedDbConfig.DB_VERSION);
+
+        if (Array.isArray(data) === false) reject("invalid array object");
+
+        dbOpenRequest.onsuccess = function () {
+            const db = dbOpenRequest.result;
+            const transaction = db.transaction(IdxedDbConfig.STORE_MESSAGE, "readwrite");
+            const objectStoreRequest = transaction.objectStore(IdxedDbConfig.STORE_MESSAGE);
+            data.forEach(data => {
+                objectStoreRequest.put(data);
+            })
+            
+            objectStoreRequest.onsuccess = (event) => {
+                resolve("add_multi_data_item_success");
+            }
+
+            transaction.onerror = (event) => {
+                reject("add multi_data_item transaction failed");
+            }
+
+        }
+        dbOpenRequest.onerror = function (event) {
+            let db = dbOpenRequest;
             reject(db.error);
         };
     });

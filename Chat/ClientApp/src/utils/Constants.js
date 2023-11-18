@@ -34,6 +34,15 @@ export const MenuTabs = {
 }
 
 
+export const RequestMethod = {
+    GET: "GET",
+    POST: "POST",
+    PUT: "PUT",
+    HEAD: "HEAD",
+    PATH: "PATCH",
+    DELETE: "DELETE"
+}
+
 export const ApiEndPoints = {
     HUB_CHAT: '/hubs/chat',
     USER_SIGN_IN: "/api/User/SignIn",
@@ -45,6 +54,7 @@ export const ApiEndPoints = {
     ADD_USER_FRIEND: '/api/UserFriend/AddUserFriend',
     GET_USER_FRIENDS: '/api/UserFriend/GetUserFriends',
     ACCEPT_OR_DENY_FRIENDS: '/api/UserFriend/AcceptOrDenyFriend',
+    GET_USER_CHAT_MESSAGE: "/api/ChatMessage/GetUserChatMessage",
     SEND_CHAT_MESSAGE:"/api/ChatMessage/SendMessage"
 }
 

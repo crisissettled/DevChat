@@ -9,10 +9,12 @@ namespace Chat.Utils {
     [ApiController]
     public class ApiControllerBase : ControllerBase {
         protected readonly bool _isDevelopment;
-        protected HttpContext? _httpContext;
+        protected readonly HttpContext? _httpContext;
+        protected readonly string? _loggedInUserId;
         public ApiControllerBase(IHostEnvironment env, IHttpContextAccessor httpContextAccessor) {
             _isDevelopment = env.IsDevelopment();
             _httpContext = httpContextAccessor?.HttpContext;
+            _loggedInUserId = _httpContext?.Items["UserId"]?.ToString();
         }
 
         protected BadRequestObjectResult BadRequestResult(ResultCode code) {

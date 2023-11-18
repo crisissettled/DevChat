@@ -12,6 +12,11 @@ namespace Chat.Utils.MongoDb.ChatMessageService {
             CreateUniqueIndexOnFromUserIdAndToUserId();
         }
 
+        public async Task<List<ChatMessage>> GetUserChatMessages(string userId) {
+            var filter = Builders<ChatMessage>.Filter.Eq(x => x.FromUserId, userId) | Builders<ChatMessage>.Filter.Eq(x => x.ToUserId, userId);
+            return await _chatMessageCollection.Find(filter, _caseInsensitiveFindOptions).ToListAsync();
+        }
+
         public async Task<ChatMessage> AddChatMessage(ChatMessage chatMessage) {
             await _chatMessageCollection.InsertOneAsync(chatMessage);
             return chatMessage;

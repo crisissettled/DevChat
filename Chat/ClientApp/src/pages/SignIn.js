@@ -4,25 +4,29 @@ import { userSignIn } from '../app/User/userSlice'
 import { useSelector, useDispatch } from 'react-redux'
 import { useEffect } from "react";
 import { initIdxedDb } from "../utils/indexedDB";
+import { getUserChatMessage } from "../app/ChatMessage/chatMessageSlice";
 
 
 export function SignIn() {
     const [userId, setUserId] = useState("");
     const [password, setPassword] = useState("");
-    const [keepLoggedIn, setKeepLoggedIn] = useState(false);
-    const [isIdxedDbInitlized, setIsIdxedDbInitlized] = useState(false);
+    const [keepLoggedIn, setKeepLoggedIn] = useState(false);   
 
+    const chatMessage = useSelector(state => state.chatMessage)
     const dispatch = useDispatch()
     const loggedInUser = useSelector((state) => state.user)
 
 
     useEffect(() => {
         if (loggedInUser?.isSignedIn === true) {
-            initIdxedDb(loggedInUser?.userId).then(res => setIsIdxedDbInitlized(true));
-        }      
+            initIdxedDb(loggedInUser?.userId).then(_ => {
+                dispatch(getUserChatMessage())
+            });
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [loggedInUser])
 
-    if (loggedInUser?.isSignedIn === true && isIdxedDbInitlized === true) return <Navigate to="/chat" replace />;
+    if (loggedInUser?.isSignedIn === true && chatMessage?.isDataLoaded === true) return <Navigate to="/chat" replace />;
 
     const handleSubmit = async (e) => {
         e.preventDefault()
