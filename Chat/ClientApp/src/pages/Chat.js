@@ -105,7 +105,8 @@ export function Chat() {
 
     const handleSendMessage = _ => {
         if (messageToSend === null || friendUserId === null) return;
-        dispatch(sendChatMessage({ toUserId: friendUserId, message: messageToSend }));       
+        dispatch(sendChatMessage({ toUserId: friendUserId, message: messageToSend }));   
+        setMessageToSend("");
     }
 
     const handleEnterKeyStroke = (e) => {
