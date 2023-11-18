@@ -1,8 +1,8 @@
-﻿export function Logo({ text = "Chat", width = 100, height = 60, fontSzie = "fs-2"}) {
-
+﻿import logo from '../../asset/images/logo.svg'
+export function Logo({ text = "Chat", width = 100}) {
     return (
-        <div className={`d-flex align-items-center justify-content-center ${fontSzie } p-3 `}  style={{ width, height, borderRadius: "50%", backgroundColor: "#3398DB", color: "#fff" }}>
-            {text}
+        <div className={`d-flex align-items-center justify-content-center`} >
+            <img src={logo} alt={text} width={width} />
         </div>
     );
 }

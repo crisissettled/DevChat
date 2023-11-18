@@ -1,5 +1,6 @@
 ﻿using Chat.Model;
 using Chat.Model.Request;
+using Chat.Model.Response;
 using Chat.Model.Response.Shared;
 using Chat.signalR;
 using Chat.Utils;
@@ -50,11 +51,15 @@ namespace Chat.Controllers {
                 var savedChatMessage = await _mongoDbChatMessageSerivce.AddChatMessage(chatMessage);
 
                 if (connectionId != null) {
-                    await _hubContext.Clients.Client(connectionId).SendAsync("ReceiveMessage", loggedInUserId, chatRequest.message);
+                    await _hubContext.Clients.Client(connectionId).SendAsync("ReceiveMessage", savedChatMessage.Id, loggedInUserId, chatRequest.message);
                 }
-
-                return Ok(new ResponseResult(ResultCode.Success, _isDevelopment) { data = savedChatMessage });
-
+                if (savedChatMessage != null) {
+                    return Ok(new ResponseResult(ResultCode.Success, _isDevelopment) {
+                        data = new ChatMessageResponse(savedChatMessage.Id??"", savedChatMessage.FromUserId, savedChatMessage.ToUserId, savedChatMessage.Message, savedChatMessage.SendAt.ToString(), savedChatMessage.IsRead)
+                    });
+                } else {
+                    return Ok(new ResponseResult(ResultCode.Failed, _isDevelopment) { message = "Save message failed" });
+                }
             } else {
                 return Ok(new ResponseResult(ResultCode.Failed, _isDevelopment) { message = "Invalid user, please re-login" });
             }

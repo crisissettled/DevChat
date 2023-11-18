@@ -18,8 +18,8 @@ export function NavMenuChat() {
 
     return (
         <header>
-            <Navbar className="navbar-expand-sm navbar-toggleable-sm ng-white border-bottom box-shadow mb-3" container light>
-                <span className="me-2"><Logo width={50} height={30} fontSzie={"fs-6"} /></span>
+            <Navbar className="navbar-expand-sm navbar-toggleable-sm ng-white border-bottom box-shadow mb-1" container light>
+                <span className="me-2"><Logo width={28}/></span>
                 <NavbarBrand tag={Link} to="/"> Welcome
                     <span className="text-capitalize mx-2">
                         {!user.data?.name ? user.userId : user.data?.name}

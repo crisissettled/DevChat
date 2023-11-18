@@ -1,7 +1,7 @@
 ﻿import React, { useState, useEffect, useContext, useRef } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
 import { Link } from 'react-router-dom';
-import { HubConnectionBuilder, HttpTransportType, HubConnectionState,LogLevel } from '@microsoft/signalr';
+import { HubConnectionBuilder, HttpTransportType, HubConnectionState, LogLevel } from '@microsoft/signalr';
 
 import { updateHubConnectionState } from '../app/User/userSlice'
 import { getUserFriends } from '../app/UserFriend/userFriendSlice'
@@ -12,8 +12,9 @@ import { AddFriendButtons } from '../components/friend/AddFriendButtons';
 import HubConnectionContext from '../utils/hubConnectionContext';
 import { ApiEndPoints } from "../utils/Constants";
 import { refreshToken } from '../utils/httpFetch';
+import { addDataToIdxedDb, getDataFromIdxedDb } from '../utils/indexedDB';
 
-import styles from './chat.module.css' 
+import styles from './chat.module.css'
 
 
 export function Chat() {
@@ -27,40 +28,40 @@ export function Chat() {
     const [messageToSend, setMessageToSend] = useState(null);
     const [messageHistory, setMessageHistory] = useState({});
 
-    const chatBox = useRef(null) 
+    const chatBox = useRef(null)
 
-    useEffect(() => {     
-        dispatch(getUserFriends({ userId: loggedInUser.userId, Blocked: false })) // get current Logged In user's friend
-   
+    useEffect(() => {
+        dispatch(getUserFriends({ userId: loggedInUser.userId, Blocked: false })) // get current LoggedIn user's friend
+
+        //load chat message from indexedDB
+        getDataFromIdxedDb().then(messages => {
+            const messageHistoryObj = {};
+            for (const msgItem of messages) {
+                if (msgItem.fromUserId !== loggedInUser.userId) {
+                    if (!messageHistoryObj[msgItem.fromUserId]) messageHistoryObj[msgItem.fromUserId] = [];
+                    messageHistoryObj[msgItem.fromUserId].push({ user: msgItem.fromUserId , message: msgItem.message });
+                } else {
+                    if (!messageHistoryObj[msgItem.toUserId]) messageHistoryObj[msgItem.toUserId] = [];
+                    messageHistoryObj[msgItem.toUserId].push({ user: msgItem.fromUserId, message: msgItem.message });
+                }
+            }
+
+            setMessageHistory(messageHistoryObj);
+        });
+
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
- 
+
 
     useEffect(() => {
         if (loggedInUser.isSignedIn && !hubConnection) {
             const con = new HubConnectionBuilder()
                 .withUrl(ApiEndPoints.HUB_CHAT, {
                     accessTokenFactory: () => {
-                        //return fetch(ApiEndPoints.USER_REFRESH_SIGN_IN, {
-                        //    method: "PUT",
-                        //    credentials: "same-origin"
-                        //})
-                        //    .then(res => res.json())
-                        //    .then(json => json?.data)
-                        //    .then(data => data?.token)
-
-                        ////if (response.status !== 401) {
-                        ////    var signInState = await ;
-                        ////    dispatch(doSignIn({ signedIn: true, token: signInState?.data, userId: signInState?.data.userId }))
-                        ////}
-
-                        //return loggedInUser?.token;
-
                         return refreshToken()
                             .then(res => res.json())
                             .then(json => json?.data)
                             .then(result => result?.token)
-
                     },
                     skipNegotiation: true,
                     transport: HttpTransportType.WebSockets
@@ -75,59 +76,54 @@ export function Chat() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
+    //start signalR hub
     useEffect(() => {
         if (hubConnection) {
             dispatch(updateHubConnectionState({ connectionState: hubConnection.state }))
             hubConnection.start()
                 .then(_ => {
                     dispatch(updateHubConnectionState({ connectionState: hubConnection.state }))
-                    //console.log("signalr hub connected", hubConnection?.state)
-                    hubConnection.on('ReceiveMessage', (fromUserId, message) => {
-                        //console.log(messageHistory, fromUserId, message, 'messageHistory in ReceiveMessage, fromUserId, message,')
-
+                    hubConnection.on('ReceiveMessage', async(messageId,fromUserId, message) => {
                         setMessageHistory(prev => {
-                            const currentChatMessage = !prev[fromUserId] === true ? [] : prev[fromUserId]
+                            const currentChatMessage = !prev[fromUserId] === true ? [] : prev[fromUserId]                         
                             return { ...prev, [fromUserId]: [...currentChatMessage, { user: fromUserId, message }] }
-                        });
-                    });
-                    hubConnection.on("FriendRequestNotification", (message) => {
-                        console.log(message,'-----FriendRequestNotification----')
-                        dispatch(getUserFriends({userId: loggedInUser.userId, Blocked: false })) // get current Logged In user's friend
-                    });
-                    hubConnection.on("FriendRequestAcceptOrDenyNotification", (message) => {
-                        console.log(message, '----FriendRequestAcceptOrDenyNotification----')
-                        console.log(loggedInUser, '----loggedInUser - FriendRequestAcceptOrDenyNotification----')
-                        dispatch(getUserFriends({userId: loggedInUser.userId, Blocked: false })) // get current Logged In user's friend
+                        });                  
+
+                        await addDataToIdxedDb({ id: messageId, fromUserId, toUserId: loggedInUser.userId, message, messageType: 0, isRead: false });
                     });
 
+                    hubConnection.on("FriendRequestNotification", (message) => {//notification for Friend Request                        
+                        dispatch(getUserFriends({ userId: loggedInUser.userId, Blocked: false }))
+                    });
+
+                    hubConnection.on("FriendRequestAcceptOrDenyNotification", (message) => {//notification for Friend Accept or Deny
+                        dispatch(getUserFriends({ userId: loggedInUser.userId, Blocked: false }))
+                    });
                 })
                 .catch(e => {
                     dispatch(updateHubConnectionState({ connectionState: hubConnection.state }))
-                    //console.log("-----signalr error-----", e)
                 });
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [hubConnection]);
 
+
+    //show latest chat message in view
     useEffect(() => {
         chatBox?.current?.lastElementChild?.scrollIntoView({ behavior: 'smooth' })
-    }, [messageHistory])
+    }, [messageHistory, friendUserId])
 
     const handleSendMessage = _ => {
-        console.log(friendUserId, messageToSend, "friendUserId - messageout")
+
         if (messageToSend === null || friendUserId === null) return;
 
-        dispatch(sendChatMessage({ toUserId:friendUserId, message:messageToSend }));
+        dispatch(sendChatMessage({ toUserId: friendUserId, message: messageToSend }));
 
-        //hubConnection.invoke("SendMessage", friendUserId, messageToSend).then(res => {
-        //    setMessageHistory(prev => {
-        //        const currentChatMessage = !prev[friendUserId] === true ? [] : prev[friendUserId]
-        //        return { ...prev, [friendUserId]: [...currentChatMessage, { user: loggedInUser.userId, message: messageToSend }] }
-        //    });
-        //    setMessageToSend(null);
-        //}).catch(function (err) {
-        //    console.error(err.toString(), "signalr error");
-        //});
+        setMessageHistory(prev => {
+            const currentChatMessage = !prev[friendUserId] === true ? [] : prev[friendUserId]
+            return { ...prev, [friendUserId]: [...currentChatMessage, { user: loggedInUser.userId, message: messageToSend }] }
+        });
+        setMessageToSend(null);
     }
 
     const handleEnterKeyStroke = (e) => {
@@ -136,9 +132,9 @@ export function Chat() {
             handleSendMessage()
         }
     }
-    //console.log(messageHistory, messageHistory[friendUserId], friendUserId, "messageHistory ,messageHistory[friendUserId], friendUserId at bottom")
 
-    const friendRequestCount = userFriends.data?.filter(e => e.friendStatus === FriendStatusKey.Requested)?.length ;
+
+    const friendRequestCount = userFriends.data?.filter(e => e.friendStatus === FriendStatusKey.Requested)?.length;
 
     return (
         <>
@@ -209,15 +205,15 @@ export function Chat() {
                         {
 
                             friendMenuTab === MenuTabs.Tab1 && userFriends.data?.filter(e => e.friendStatus === FriendStatusKey.Accepted)?.map(e => (
-                                <div key={e.friendUserId} className="border-bottom py-2">
-                                    <FriendInfoRow {...e} allowChat={true} setFriendUserIdToChat={setFriendUserId} />
+                                <div key={e.friendUserId} className="border-bottom rounded px-2 py-1" style={{ fontWeight: friendUserId === e.friendUserId ? "600" : "100" } }>
+                                    <FriendInfoRow {...e} allowChat={true} setFriendUserIdToChat={setFriendUserId} selectedFriendId={ friendUserId} />
                                 </div>
                             ))
 
                         }
                         {
                             friendMenuTab === MenuTabs.Tab2 && userFriends.data?.filter(e => e.friendStatus === FriendStatusKey.Requested)?.map(e => (
-                                <div key={e.friendUserId} className="border-bottom py-1"> 
+                                <div key={e.friendUserId} className="border-bottom py-1">
                                     <FriendInfoRow {...e} />
                                     <AddFriendButtons {...e} />
                                 </div>

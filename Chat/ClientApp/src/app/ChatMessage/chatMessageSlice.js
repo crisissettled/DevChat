@@ -7,8 +7,8 @@ export const sendChatMessage = createAsyncThunk(
     ApiEndPoints.SEND_CHAT_MESSAGE,
     async (data,thunkAPI) => {
         let response = await httpFetch(ApiEndPoints.SEND_CHAT_MESSAGE, "POST", thunkAPI, data);
-        let result = response.json();
-        await addDataToIdxedDb(result?.data);
+        let result = await response.json();
+        addDataToIdxedDb(result?.data);
         return result;
     }
 ) 
