@@ -27,11 +27,8 @@ export function Chat() {
     const [friendMenuTab, setfriendMenuTab] = useState(MenuTabs.Tab1)
     const [friendUserId, setFriendUserId] = useState(null)
     const [messageToSend, setMessageToSend] = useState(null);
-  /*  const [messageHistory, setMessageHistory] = useState({});*/
 
-    const chatBox = useRef(null)
-
-    console.log(chatMessage,"chatMessage")
+    const chatBox = useRef(null) 
 
     useEffect(() => {
         dispatch(getUserFriends({ userId: loggedInUser.userId, Blocked: false })) // get current LoggedIn user's friend
@@ -76,8 +73,9 @@ export function Chat() {
             hubConnection.start()
                 .then(_ => {
                     dispatch(updateHubConnectionState({ connectionState: hubConnection.state }))
-                    hubConnection.on('ReceiveMessage', async (messageId, fromUserId, message) => {                       
-                        dispatch(addMessage({ user: fromUserId, message }));
+                    hubConnection.on('ReceiveMessage', async (messageId, fromUserId, message) => {             
+  
+                        dispatch(addMessage({ fromUserId, message }));
 
                         await addDataToIdxedDb({ id: messageId, fromUserId, toUserId: loggedInUser.userId, message, messageType: 0, isRead: false });
                     });

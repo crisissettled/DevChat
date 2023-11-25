@@ -1,7 +1,7 @@
 ﻿import { IdxedDbConfig } from "./Constants";
 
 
-const createStore = (db, userId) => {
+const createStore = (db) => {
     if (db.objectStoreNames.contains(IdxedDbConfig.STORE_MESSAGE)) {
         db.deleteObjectStore(IdxedDbConfig.STORE_MESSAGE);
     }
@@ -27,18 +27,18 @@ const createStore = (db, userId) => {
 export const initIdxedDb = (userId) => {
     return new Promise((resolve, reject) => {
         let dbOpenRequest = indexedDB.open(IdxedDbConfig.DB_NAME, IdxedDbConfig.DB_VERSION);
-        dbOpenRequest.onupgradeneeded = function () {
-            let db = dbOpenRequest.result;
-            createStore(db, userId);
+        dbOpenRequest.onupgradeneeded = function (event) {
+            let db = event.target.result;
+            createStore(db);
         };
 
-        dbOpenRequest.onsuccess = function () {
-            const db = dbOpenRequest.result;
+        dbOpenRequest.onsuccess = function (event) {
+            const db = event.target.result;
 
             const transactionsUerInfo = db.transaction(IdxedDbConfig.STORE_USER_INFO, "readonly");
             const storeUserInfo = transactionsUerInfo.objectStore(IdxedDbConfig.STORE_USER_INFO);
-            const storeUserInfoRequest = storeUserInfo.openCursor();
-            storeUserInfoRequest.onsuccess = function (event) {
+            const storeUserInfoCursor= storeUserInfo.openCursor();
+            storeUserInfoCursor.onsuccess = function (event) {
                 const cursor = event.target.result;
                 if (cursor) {
                     if (cursor.key !== userId) {
@@ -52,7 +52,7 @@ export const initIdxedDb = (userId) => {
                         }
 
                         const transactionMessageClear = db.transaction(IdxedDbConfig.STORE_MESSAGE, "readwrite");
-                        const storeChatMessageClear = transactionMessageClear.objectStore(IdxedDbConfig.STORE_MESSAGE);                        
+                        const storeChatMessageClear = transactionMessageClear.objectStore(IdxedDbConfig.STORE_MESSAGE);
                         storeChatMessageClear.clear();
                     }
                     else {
@@ -73,9 +73,9 @@ export const initIdxedDb = (userId) => {
             resolve("init_success");
         };
 
-        dbOpenRequest.onerror = function () {
-            let db = dbOpenRequest;
-            reject(db.error);
+        dbOpenRequest.onerror = function (event) {
+            let dbOpenRequest = event.target;
+            reject(dbOpenRequest.error);
         };
     });
 }
@@ -83,25 +83,20 @@ export const initIdxedDb = (userId) => {
 
 export const addDataToIdxedDb = (data) => {
     return new Promise((resolve, reject) => {
-        const dbOpenRequest = indexedDB.open(IdxedDbConfig.DB_NAME, IdxedDbConfig.DB_VERSION);     
+        const dbOpenRequest = indexedDB.open(IdxedDbConfig.DB_NAME, IdxedDbConfig.DB_VERSION);
 
-        dbOpenRequest.onsuccess = function () {
-            const db = dbOpenRequest.result;
+        dbOpenRequest.onsuccess = function (event) {
+            const db = event.target.result;
             const transaction = db.transaction(IdxedDbConfig.STORE_MESSAGE, "readwrite");
-            const objectStoreRequest = transaction.objectStore(IdxedDbConfig.STORE_MESSAGE);
-             
-            objectStoreRequest.put(data);
-            objectStoreRequest.onsuccess = (event) => {
+            const store = transaction.objectStore(IdxedDbConfig.STORE_MESSAGE);
+
+            const storeRequest = store.put(data);
+            storeRequest.onsuccess = (event) => {
                 resolve("add_data_success");
             }
-
-            transaction.onerror = (event) => {
-                reject("add transaction failed");
-            }
-           
         }
         dbOpenRequest.onerror = function (event) {
-            let db = dbOpenRequest;     
+            let db = event.target;
             reject(db.error);
         };
     });
@@ -116,23 +111,18 @@ export const addMultiDataItemToIdxedDb = (data) => {
         dbOpenRequest.onsuccess = function () {
             const db = dbOpenRequest.result;
             const transaction = db.transaction(IdxedDbConfig.STORE_MESSAGE, "readwrite");
-            const objectStoreRequest = transaction.objectStore(IdxedDbConfig.STORE_MESSAGE);
+            const store = transaction.objectStore(IdxedDbConfig.STORE_MESSAGE);
             data.forEach(data => {
-                objectStoreRequest.put(data);
+                store.put(data);
             })
-            
-            objectStoreRequest.onsuccess = (event) => {
+
+            transaction.onsuccess = (event) => {
                 resolve("add_multi_data_item_success");
             }
-
-            transaction.onerror = (event) => {
-                reject("add multi_data_item transaction failed");
-            }
-
         }
         dbOpenRequest.onerror = function (event) {
-            let db = dbOpenRequest;
-            reject(db.error);
+            let dbOpenRequest = event.target;
+            reject(dbOpenRequest.error);
         };
     });
 }
@@ -144,22 +134,21 @@ export const getDataFromIdxedDb = () => {
         dbOpenRequest.onsuccess = function () {
             const db = dbOpenRequest.result;
             const transaction = db.transaction(IdxedDbConfig.STORE_MESSAGE, "readonly");
-            const objectStoreRequest = transaction.objectStore(IdxedDbConfig.STORE_MESSAGE);
+            const store = transaction.objectStore(IdxedDbConfig.STORE_MESSAGE);
 
-            const data = objectStoreRequest.getAll();  
-            
-            transaction.oncomplete = () => {   
-                //console.log(data, "transaction.oncomplete ")
-                resolve(data.result);
+            const storeRequest = store.getAll();
+
+            storeRequest.onsuccess = (event) => {
+                resolve(event.target.result);
+            };
+
+            transaction.oncomplete = (event) => {
+                console.log(event, "transaction.oncomplete -read");
             }
-
-            transaction.onerror = (event) => {
-                reject("get data transaction failed");
-            } 
         }
         dbOpenRequest.onerror = function (event) {
-            let db = event.target.result;
-            reject(db.error);
+            let dbOpenRequest = event.target;
+            reject(dbOpenRequest.error);
         };
     });
 }

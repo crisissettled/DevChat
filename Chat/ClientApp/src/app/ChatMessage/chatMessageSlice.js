@@ -24,7 +24,9 @@ export const sendChatMessage = createAsyncThunk(
         let result = await response.json();
         addDataToIdxedDb(result?.data);
 
-        return result;
+        const loggedInUser = thunkAPI.getState().user;
+
+        return { data: result, loggedInUser };
     }
 )
 
@@ -69,14 +71,16 @@ const chatMessageSlice = createSlice({
 
         }).addCase(sendChatMessage.fulfilled, (state, { payload }) => {
             state.status = FetchStatus.FULFILLED
-            const data = payload.data;
+            const data = payload.data.data;
             const friendUserId = data?.toUserId;
             const message = data?.message;
+  
+            const loggedInUser = payload.loggedInUser;
 
             if (state.data === null) state.data = {};
             if (!state.data[friendUserId]) state.data[friendUserId] = [];
          
-            state.data[friendUserId].push({ user: friendUserId, message });
+            state.data[friendUserId].push({ user: loggedInUser.userId, message });
 
         }).addCase(sendChatMessage.rejected, (state, action) => {
             state.status = FetchStatus.REJECTED
