@@ -8,4 +8,12 @@ namespace Chat.Model.Request {
             RuleFor(x => x.message).NotEmpty();
         }
     }
+
+
+    public record ChatMessageUpdateReadStatusRequest(string id);
+    public class ChatMessageUpdateReadStatusRequestValidator : AbstractValidator<ChatMessageUpdateReadStatusRequest> {
+        public ChatMessageUpdateReadStatusRequestValidator() {
+            RuleFor(x => x.id).NotEmpty();             
+        }
+    }
 }

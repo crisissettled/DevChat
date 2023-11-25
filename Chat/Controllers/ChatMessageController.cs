@@ -35,7 +35,7 @@ namespace Chat.Controllers {
                 var chatMessages = await _mongoDbChatMessageSerivce.GetUserChatMessages(_loggedInUserId);
 
                 return Ok(new ResponseResult(ResultCode.Success, _isDevelopment) {
-                        data = chatMessages.Select(x => new ChatMessageResponse(x.Id ?? "", x.FromUserId, x.ToUserId, x.Message, x.SendAt.ToString(), x.IsRead))
+                    data = chatMessages.Select(x => new ChatMessageResponse(x.Id ?? "", x.FromUserId, x.ToUserId, x.Message, x.SendAt.ToString(), x.IsRead, x.IsSent))
                 });
             }
 
@@ -64,11 +64,11 @@ namespace Chat.Controllers {
                 var savedChatMessage = await _mongoDbChatMessageSerivce.AddChatMessage(chatMessage);
 
                 if (connectionId != null) {
-                    await _hubContext.Clients.Client(connectionId).SendAsync("ReceiveMessage", savedChatMessage.Id, _loggedInUserId, chatRequest.message);
+                    await _hubContext.Clients.Client(connectionId).SendAsync("ReceiveMessage", savedChatMessage.Id, _loggedInUserId, chatRequest.message, savedChatMessage.SendAt.ToString(), savedChatMessage.IsSent);
                 }
                 if (savedChatMessage != null) {
                     return Ok(new ResponseResult(ResultCode.Success, _isDevelopment) {
-                        data = new ChatMessageResponse(savedChatMessage.Id ?? "", savedChatMessage.FromUserId, savedChatMessage.ToUserId, savedChatMessage.Message, savedChatMessage.SendAt.ToString(), savedChatMessage.IsRead)
+                        data = new ChatMessageResponse(savedChatMessage.Id ?? "", savedChatMessage.FromUserId, savedChatMessage.ToUserId, savedChatMessage.Message, savedChatMessage.SendAt.ToString(), savedChatMessage.IsRead, savedChatMessage.IsSent)
                     });
                 } else {
                     return Ok(new ResponseResult(ResultCode.Failed, _isDevelopment) { message = "Save message failed" });
@@ -76,6 +76,38 @@ namespace Chat.Controllers {
             } else {
                 return Ok(new ResponseResult(ResultCode.Failed, _isDevelopment) { message = "Invalid user, please re-login" });
             }
+        }
+
+
+        [HttpPut]
+        public async Task<ActionResult> UpdateMessageReadStatus(
+          ChatMessageUpdateReadStatusRequest chatMessageUpdateReadStatusRequest,
+          [FromServices] IValidator<ChatMessageUpdateReadStatusRequest> validator
+          ) {
+
+            var resultValidate = await validator.ValidateAsync(chatMessageUpdateReadStatusRequest);
+
+            if (!resultValidate.IsValid) {
+                return ValidationResult(resultValidate);
+            }
+
+            var chatMessage = await _mongoDbChatMessageSerivce.GetChatMessagesById(chatMessageUpdateReadStatusRequest.id);
+            if (_loggedInUserId!=null && chatMessage != null && chatMessage.IsRead == false && chatMessage.ToUserId == _loggedInUserId) {
+
+                var updatedChatMessage = await _mongoDbChatMessageSerivce.UpdateChatMessageIsRead(chatMessageUpdateReadStatusRequest.id);
+
+                var connectionId = _chatSessions.getConnectionId(chatMessage.FromUserId);
+                if (connectionId != null) {
+                    await _hubContext.Clients.Client(connectionId).SendAsync("MessageRead", updatedChatMessage.Id, updatedChatMessage.FromUserId, updatedChatMessage.ToUserId, updatedChatMessage.Message, updatedChatMessage.SendAt.ToString(), updatedChatMessage.IsSent, updatedChatMessage.IsRead);
+                }
+
+                return Ok(new ResponseResult(ResultCode.Success, _isDevelopment) {
+                    data = new ChatMessageResponse(updatedChatMessage.Id ?? "", updatedChatMessage.FromUserId, updatedChatMessage.ToUserId, updatedChatMessage.Message, updatedChatMessage.SendAt.ToString(), updatedChatMessage.IsRead, updatedChatMessage.IsSent)
+                });
+
+            }
+
+            return Ok(new ResponseResult(ResultCode.Failed, _isDevelopment) { message = "update message read status failed" }); 
         }
 
     }

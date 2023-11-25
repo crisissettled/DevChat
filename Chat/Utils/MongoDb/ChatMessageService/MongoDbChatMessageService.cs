@@ -12,6 +12,11 @@ namespace Chat.Utils.MongoDb.ChatMessageService {
             CreateUniqueIndexOnFromUserIdAndToUserId();
         }
 
+        public async Task<ChatMessage> GetChatMessagesById(string id) {
+            var filter = Builders<ChatMessage>.Filter.Eq(x => x.Id, id);
+            return await _chatMessageCollection.Find(filter, _caseInsensitiveFindOptions).FirstOrDefaultAsync();
+        }
+
         public async Task<List<ChatMessage>> GetUserChatMessages(string userId) {
             var filter = Builders<ChatMessage>.Filter.Eq(x => x.FromUserId, userId) | Builders<ChatMessage>.Filter.Eq(x => x.ToUserId, userId);
             return await _chatMessageCollection.Find(filter, _caseInsensitiveFindOptions).ToListAsync();
@@ -22,12 +27,14 @@ namespace Chat.Utils.MongoDb.ChatMessageService {
             return chatMessage;
         }
 
-        public async Task UpdateChatMessageIsRead(string id) {
+        public async Task<ChatMessage> UpdateChatMessageIsRead(string id) {
             var filter = Builders<ChatMessage>.Filter.Eq(x => x.Id, id);
 
             var update = Builders<ChatMessage>.Update.Set(x => x.IsRead, true);
 
-            await _chatMessageCollection.UpdateOneAsync(filter, update);
+            var result = await _chatMessageCollection.UpdateOneAsync(filter, update);
+
+            return await GetChatMessagesById(id);
         }
 
         public async Task UpdateChatMessage(string id, string message) {

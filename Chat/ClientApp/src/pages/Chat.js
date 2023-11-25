@@ -3,9 +3,10 @@ import { useSelector, useDispatch } from 'react-redux'
 import { Link } from 'react-router-dom';
 import { HubConnectionBuilder, HttpTransportType, HubConnectionState, LogLevel } from '@microsoft/signalr';
 
+
 import { updateHubConnectionState } from '../app/User/userSlice'
 import { getUserFriends } from '../app/UserFriend/userFriendSlice'
-import { addMessage, loadMessage, sendChatMessage } from '../app/ChatMessage/chatMessageSlice'
+import { addMessage, loadMessage, sendChatMessage, updateChatMessageReadStatus, updateMessage } from '../app/ChatMessage/chatMessageSlice'
 import { FriendStatusKey, MenuTabs } from '../utils/Constants'
 import { FriendInfoRow } from '../components/friend/FriendInfoRow';
 import { AddFriendButtons } from '../components/friend/AddFriendButtons';
@@ -14,7 +15,9 @@ import { ApiEndPoints } from "../utils/Constants";
 import { refreshToken } from '../utils/httpFetch';
 import { addDataToIdxedDb, getDataFromIdxedDb } from '../utils/indexedDB';
 
+
 import styles from './chat.module.css'
+import { ChatMessage } from '../components/chat_message/ChatMessage';
 
 
 export function Chat() {
@@ -28,7 +31,9 @@ export function Chat() {
     const [friendUserId, setFriendUserId] = useState(null)
     const [messageToSend, setMessageToSend] = useState(null);
 
-    const chatBox = useRef(null) 
+    const [observer, setObserver] = useState(null);
+
+    const chatBox = useRef(null)
 
     useEffect(() => {
         dispatch(getUserFriends({ userId: loggedInUser.userId, Blocked: false })) // get current LoggedIn user's friend
@@ -73,11 +78,17 @@ export function Chat() {
             hubConnection.start()
                 .then(_ => {
                     dispatch(updateHubConnectionState({ connectionState: hubConnection.state }))
-                    hubConnection.on('ReceiveMessage', async (messageId, fromUserId, message) => {             
-  
-                        dispatch(addMessage({ fromUserId, message }));
+                    hubConnection.on('ReceiveMessage', async (messageId, fromUserId, message, sendAt, isSent) => {
 
-                        await addDataToIdxedDb({ id: messageId, fromUserId, toUserId: loggedInUser.userId, message, messageType: 0, isRead: false });
+                        dispatch(addMessage({ id: messageId, fromUserId, message, sendAt, isRead: false, isSent }));
+
+                        await addDataToIdxedDb({ id: messageId, fromUserId, toUserId: loggedInUser.userId, message, messageType: 0, sendAt, isRead: false, isSent });
+                    });
+
+                    hubConnection.on("MessageRead", async (messageId,fromUserId, toUserId, message, sendAt, isSent, isRead) => {
+                        dispatch(updateMessage({ id: messageId, toUserId }));
+                        
+                        await addDataToIdxedDb({ id: messageId, fromUserId, toUserId, message, messageType: 0, sendAt, isRead, isSent });
                     });
 
                     hubConnection.on("FriendRequestNotification", (message) => {//notification for Friend Request                        
@@ -101,9 +112,43 @@ export function Chat() {
         chatBox?.current?.lastElementChild?.scrollIntoView({ behavior: 'smooth' })
     }, [chatMessage, friendUserId])
 
+
+    //set read to true
+    useEffect(() => {
+        const chatbox = chatBox.current;
+        const options = {
+            root: chatbox,
+            rootMargin: "16px",
+            threshold: 1.0,
+        };
+
+        const callbackFun = (entries) => {
+            entries.forEach(entry => {
+                const isRead = entry.target.dataset.isread;
+
+                if (isRead === "false") {
+                    if (entry.isIntersecting === true) {
+                        const id = entry.target.dataset.id;
+                        dispatch(updateChatMessageReadStatus({ id }))
+                    }
+                }
+            });
+        }
+
+
+        const observer = new IntersectionObserver(callbackFun, options);
+
+        if (chatbox) {
+            observer.observe(chatbox);
+            setObserver(observer)
+        }
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
+
     const handleSendMessage = _ => {
         if (messageToSend === null || friendUserId === null) return;
-        dispatch(sendChatMessage({ toUserId: friendUserId, message: messageToSend }));   
+        dispatch(sendChatMessage({ toUserId: friendUserId, message: messageToSend }));
         setMessageToSend("");
     }
 
@@ -120,30 +165,14 @@ export function Chat() {
     return (
         <>
             <div className="row" > {/*left section*/}
-                <div className="col-8 border">
-                    <div className="d-flex align-items-center">
-                        <span className="text-capitalize fs-5">{!!friendUserId === true ? friendUserId : "select a friend to chat"}</span>
-                    </div>
+                <div className="col-8 border rounded">
+                    {/*<div className="d-flex align-items-center">*/}
+                    {/*    <span className="text-capitalize fs-5">{!!friendUserId === true ? friendUserId : "select a friend to chat"}</span>*/}
+                    {/*</div>*/}
                     <div className={styles.chatbox} style={{ height: 300, overflowY: 'scroll' }} ref={chatBox}>
                         {
-                            chatMessage?.data && chatMessage?.data[friendUserId]?.map((item, index) =>
-                                <pre key={index} className="m-1">
-                                    {item.user === loggedInUser.userId ?
-                                        (
-                                            <div className="my-2" style={{ textAlign: 'right' }}>
-                                                <div className="text-capitalize me-1">{item.user} (YOU)</div>
-                                                <div> <span className="p-2 rounded d-inline-block" style={{ backgroundColor: "#cbf3f3" }}>{item.message}</span></div>
-                                            </div>
-                                        )
-                                        :
-                                        (
-                                            <div className="my-2" >
-                                                <div className="text-capitalize ms-1">{item.user}</div>
-                                                <div><span className="p-2 rounded d-inline-block" style={{ backgroundColor: "#f6f8fa" }}>{item.message}</span></div>
-                                            </div>
-                                        )
-                                    }
-                                </pre>
+                            chatMessage?.data && chatMessage?.data[friendUserId]?.map((item) =>
+                                <ChatMessage key={item.id} item={item} loggedInUser={loggedInUser} observer={observer} />
                             )
                         }
                     </div>

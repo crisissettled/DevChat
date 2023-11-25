@@ -143,7 +143,7 @@ export const getDataFromIdxedDb = () => {
             };
 
             transaction.oncomplete = (event) => {
-                console.log(event, "transaction.oncomplete -read");
+                //console.log(event, "transaction.oncomplete -read");
             }
         }
         dbOpenRequest.onerror = function (event) {
