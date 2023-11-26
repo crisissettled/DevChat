@@ -26,7 +26,7 @@ export const ChatMessage = ({ item, loggedInUser, observer }) => {
                         <div> <span className="p-2 rounded d-inline-block" style={{ backgroundColor: "#cbf3f3" }}>{item.message} </span>
                             {
                                 item.isRead === true ? <img src={checkmarkSent} alt="sent" width={15} style={{ verticalAlign: "bottom" }} />
-                                    : item.isSent === true ? <img src={checkmarkRead} alt="sent" width={15} style={{ verticalAlign: "bottom" }} /> : ""
+                                    : item.isSent === true ? <img src={checkmarkRead} alt="read" width={15} style={{ verticalAlign: "bottom" }} /> : ""
                             }
                         </div>
                     </div>
