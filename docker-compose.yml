@@ -1,0 +1,27 @@
+services:
+  webapp:
+    build:
+      context: .
+      dockerfile: /Chat/Dockerfile 
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8065
+    container_name: devchat_web
+    networks:
+      - devchat_network
+    ports:
+      - "8065:8065"
+    depends_on:
+      - db
+
+  db:
+   image: mongodb/mongodb-community-server:7.0-ubi8
+   container_name: mongodb_devchat
+   networks:
+     - devchat_network
+   ports:
+     - "27017:27017"
+
+networks:
+  devchat_network:
+   driver: bridge
