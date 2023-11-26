@@ -19,8 +19,8 @@ services:
    container_name: mongodb_devchat
    networks:
      - devchat_network
-   ports:
-     - "27017:27017"
+   expose:
+     - "27017"
 
 networks:
   devchat_network:
