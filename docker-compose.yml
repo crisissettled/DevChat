@@ -26,6 +26,7 @@ services:
 
 networks:
   devchat_network:
+   name: devchat_network
    driver: bridge
 
 volumes:
