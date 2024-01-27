@@ -10,6 +10,7 @@
     <DockerServiceName>chat</DockerServiceName>
   </PropertyGroup>
   <ItemGroup>
+    <None Include="docker-compose_image.yml" />
     <None Include="docker-compose.yml" />
     <None Include=".dockerignore" />
   </ItemGroup>
